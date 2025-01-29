@@ -5,11 +5,15 @@ import {
   IconFile,
   IconActivity,
   IconTag,
-  IconMenu2, // 햄버거 메뉴 스타일 접기 아이콘
+  IconMenu2,
   IconSearch,
 } from "@tabler/icons-react";
 import { useClipStore } from "@/store/clipStore";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Titlebar from "./Titlebar";
+
+// 간단 Mac 판별 (원하면 main에서 process.platform="darwin" 넘겨받아도 됨)
+const isMac = navigator.userAgent.includes("Mac OS X");
 
 interface SidebarProps {
   onCloseSidebar: () => void;
@@ -27,47 +31,62 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
 
   return (
-    <div className="flex flex-col w-64 h-screen bg-[#F9F9F9] text-gray-900">
-      {/* Lv1: 최상단 (접기 버튼) */}
-      <div className="flex items-center justify-end p-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="hover:bg-gray-200 rounded-md transition-all"
-          onClick={onCloseSidebar}
-        >
-          <IconMenu2 className="w-5 h-5 text-gray-600" />
-        </Button>
-      </div>
+    <div className="flex flex-col w-64 h-screen bg-[#F9F9F9] text-gray-900 relative">
+      {" "}
+      {/* relative 추가 */}
+      {/* (1) 최상단 영역 */}
+      <div className="relative h-14 drag-region flex items-center">
+        {/* Windows/Linux 전용 커스텀 버튼 */}
+        {!isMac && (
+          <div className="no-drag-region flex items-center">
+            <Titlebar />
+          </div>
+        )}
 
-      {/* Lv2: 검색 필드 */}
-      <div className="p-3">
+        {/* 우측: 사이드바 접기 버튼 (햄버거) */}
+        <div className="absolute right-0 top-0 no-drag-region flex items-center h-14 px-3">
+          <Button
+            variant="ghost"
+            size="lg"
+            className="hover:bg-gray-200 rounded-md transition-all"
+            onClick={onCloseSidebar}
+          >
+            <IconMenu2 className="w-7 h-7 text-gray-600" />
+          </Button>
+        </div>
+      </div>
+      {/*
+        (2) 검색 필드 - 아이콘도 조금 키우려면 w-5 h-5 → w-6 h-6 등 가능
+      */}
+      <div className="px-4 py-3">
         <div className="relative">
           <Input
             placeholder="Search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 text-sm"
           />
-          <IconSearch className="absolute left-4 top-2.5 w-4 h-4 text-gray-500" />
+          <IconSearch className="absolute left-3 top-2.5 w-5 h-5 text-gray-500" />
         </div>
       </div>
-
-      {/* Lv3: 메인 내비게이션 (Clips / Actions / Snippets) */}
-      <div className="p-2">
+      {/*
+        (3) 메인 내비게이션
+      */}
+      <div className="px-2 pb-2">
         <div className="flex items-center p-2 text-gray-600 cursor-pointer hover:bg-[#ECECEC] rounded-md">
-          <IconFile className="w-4 h-4 mr-2" /> Clips
+          <IconFile className="w-5 h-5 mr-2" /> Clips
         </div>
         <div className="flex items-center p-2 text-gray-600 cursor-pointer hover:bg-[#ECECEC] rounded-md">
-          <IconActivity className="w-4 h-4 mr-2" /> Actions
+          <IconActivity className="w-5 h-5 mr-2" /> Actions
         </div>
         <div className="flex items-center p-2 text-gray-600 cursor-pointer hover:bg-[#ECECEC] rounded-md">
-          <IconTag className="w-4 h-4 mr-2" /> Snippets
+          <IconTag className="w-5 h-5 mr-2" /> Snippets
         </div>
       </div>
-
-      {/* Lv4: 즐겨찾기 (Favorites) 복구 */}
-      <div className="p-2">
+      {/*
+        (4) 즐겨찾기(Favorites)
+      */}
+      <div className="px-2 pb-2">
         <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
           Favorites
         </div>
@@ -78,7 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               return (
                 <div
                   key={clip.id}
-                  onClick={() => onSelectClip && onSelectClip(clip.id)}
+                  onClick={() => onSelectClip?.(clip.id)}
                   className={`p-2 mb-1 rounded-md cursor-pointer ${
                     isSelected ? "bg-gray-300" : "hover:bg-[#ECECEC]"
                   }`}
@@ -94,9 +113,10 @@ const Sidebar: React.FC<SidebarProps> = ({
           )}
         </ScrollArea>
       </div>
-
-      {/* Lv5: Labels 섹션 복구 */}
-      <div className="p-3">
+      {/*
+        (5) Labels
+      */}
+      <div className="px-3 py-2">
         <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
           Labels
         </div>

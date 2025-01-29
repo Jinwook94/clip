@@ -1,3 +1,5 @@
+// 완성된 전체 코드 (client/electron/main/index.ts)
+
 import {
   app,
   BrowserWindow,
@@ -66,11 +68,20 @@ async function createWindow() {
 
   const { width = 900, height = 680 } = store.get("windowBounds") || {};
 
+  // Mac이면 기본 traffic light 버튼을 쓰고, 나머지 OS에는 frame:false 로 (원하는 경우 조정)
+  const isMac = process.platform === "darwin";
+
   win = new BrowserWindow({
     title: "Clip",
     icon: path.join(process.env.VITE_PUBLIC, "favicon.ico"),
     width,
     height,
+    // Mac일 때만 titleBarStyle을 주어 기본 빨강/노랑/초록 버튼이 나타나게 함
+    frame: isMac ? true : false,
+    titleBarStyle: isMac ? "hiddenInset" : undefined,
+    // 필요에 따라 trafficLightPosition도 세밀 조정 가능
+    trafficLightPosition: isMac ? { x: 20, y: 16 } : undefined,
+
     webPreferences: {
       preload,
     },
