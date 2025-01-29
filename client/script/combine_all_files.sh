@@ -29,30 +29,34 @@ mkdir -p "$(dirname "$OUTPUT_FILE")"
 ##############################################
 # 2) 프로젝트 구조(tree) 출력
 ##############################################
-echo "# Project Structure:" >> "$OUTPUT_FILE"
-tree . --charset=ASCII -I "node_modules|dist|.idea|package-lock.json|fonts|script" >> "$OUTPUT_FILE"
+echo "# Clip Project Structure (Electron, React, Vite):" >> "$OUTPUT_FILE"
+tree . --charset=ASCII \
+  -I "node_modules|dist|.idea|package-lock.json|fonts|script|LICENSE|README.md|.github|.vscode|test|*.gif" \
+  >> "$OUTPUT_FILE"
 echo "" >> "$OUTPUT_FILE"
 
 ##############################################
 # 3) 프로젝트 기술 스택 출력
 ##############################################
 echo "# Project Tech stack:" >> "$OUTPUT_FILE"
-echo "- React" >> "$OUTPUT_FILE"
-echo "- Vite" >> "$OUTPUT_FILE"
-echo "- TypeScript" >> "$OUTPUT_FILE"
+echo "- TypeScript ^5.4.2" >> "$OUTPUT_FILE"
+echo "- Electron ^33.2.0" >> "$OUTPUT_FILE"
+echo "- React ^18.3.1" >> "$OUTPUT_FILE"
+echo "- Vite ^5.4.11" >> "$OUTPUT_FILE"
+echo "- Zustand CSS" >> "$OUTPUT_FILE"
 echo "- Tailwind CSS" >> "$OUTPUT_FILE"
-echo "- shadcn/ui" >> "$OUTPUT_FILE"
-echo "- radix-ui" >> "$OUTPUT_FILE"
-echo "- tabler/icons-react" >> "$OUTPUT_FILE"
+echo "- shadcn/ui (radix-ui), @tabler/icons-react," >> "$OUTPUT_FILE"
+echo "- electron-store, better-sqlite3" >> "$OUTPUT_FILE"
 echo "" >> "$OUTPUT_FILE"
 
 ##############################################
 # 4) 전체 소스코드 병합
+#    (LICENSE, README.md, *.gif, .github, .vscode, test 폴더 제외)
 ##############################################
 echo "# Full Project Source Code:" >> "$OUTPUT_FILE"
 echo "" >> "$OUTPUT_FILE"
 
-# 한 번의 find 로 필요한 확장자만 검색
+# find 로 필요한 확장자만 검색
 find . \
   \( -name "*.js" \
      -o -name "*.jsx" \
@@ -70,7 +74,13 @@ find . \
   ! -path "*/fonts/*" \
   ! -path "*/src/data/*" \
   ! -path "*/script/*" \
+  ! -path "*/.github/*" \
+  ! -path "*/.vscode/*" \
+  ! -path "*/test/*" \
   ! -name "package-lock.json" \
+  ! -name "LICENSE" \
+  ! -name "README.md" \
+  ! -iname "*.gif" \
   | sort \
   | while read -r file
 do

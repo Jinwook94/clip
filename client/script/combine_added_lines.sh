@@ -26,9 +26,23 @@ rm -f "$OUTPUT_FILE"
 ##############################################
 # 2) (선택) client 트리 구조, 기술스택 등 정보 출력
 ##############################################
-echo "# Project Structure (client only):" >> "$OUTPUT_FILE"
+echo "# Clip Project Structure (Electron, React, Vite):" >> "$OUTPUT_FILE"
 # 여기서 script 폴더는 표시되지 않도록 -I "script" 추가
 tree client --charset=ASCII -I "node_modules|dist|.idea|package-lock.json|fonts|script" >> "$OUTPUT_FILE"
+echo "" >> "$OUTPUT_FILE"
+
+##############################################
+# 프로젝트 기술 스택 출력
+##############################################
+echo "# Project Tech stack:" >> "$OUTPUT_FILE"
+echo "- TypeScript ^5.4.2" >> "$OUTPUT_FILE"
+echo "- Electron ^33.2.0" >> "$OUTPUT_FILE"
+echo "- React ^18.3.1" >> "$OUTPUT_FILE"
+echo "- Vite ^5.4.11" >> "$OUTPUT_FILE"
+echo "- Zustand CSS" >> "$OUTPUT_FILE"
+echo "- Tailwind CSS" >> "$OUTPUT_FILE"
+echo "- shadcn/ui (radix-ui), @tabler/icons-react," >> "$OUTPUT_FILE"
+echo "- electron-store, better-sqlite3" >> "$OUTPUT_FILE"
 echo "" >> "$OUTPUT_FILE"
 
 echo "# Added Lines (Uncommitted Changes in client):" >> "$OUTPUT_FILE"
