@@ -1,10 +1,10 @@
 {
-  "name": "electron-vite-react",
+  "name": "clip",
   "version": "2.2.0",
   "main": "dist-electron/main/index.js",
-  "description": "Electron Vite React boilerplate.",
-  "author": "草鞋没号 <308487730@qq.com>",
-  "license": "MIT",
+  "description": "Clip application",
+  "author": "Jinwook Kim <kimjinwook94@gmail.com>",
+  "license": "AGPL-3.0-only",
   "private": true,
   "debug": {
     "env": {

@@ -42,7 +42,7 @@ if (process.platform === 'linux') {
     await electronApp.close()
   })
 
-  describe('[electron-vite-react] e2e tests', async () => {
+  describe('[clip] e2e tests', async () => {
     test('startup', async () => {
       const title = await page.title()
       expect(title).eq('Electron + Vite + React')

@@ -1,7 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "YourAppID",
+  "appId": "io.github.jinwook94.clip",
+  "productName": "Clip",
   "asar": true,
+  "extraMetadata": {
+    "main": "dist-electron/main/index.js"
+  },
   "directories": {
     "output": "release/${version}"
   },
@@ -12,17 +16,22 @@
   "mac": {
     "artifactName": "${productName}_${version}.${ext}",
     "target": [
-      "dmg",
-      "zip"
-    ]
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "zip",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "category": "public.app-category.productivity"
   },
   "win": {
     "target": [
       {
         "target": "nsis",
-        "arch": [
-          "x64"
-        ]
+        "arch": ["x64"]
       }
     ],
     "artifactName": "${productName}_${version}.${ext}"
@@ -36,6 +45,6 @@
   "publish": {
     "provider": "generic",
     "channel": "latest",
-    "url": "https://github.com/electron-vite/electron-vite-react/releases/download/v0.9.9/"
+    "url": "https://github.com/Jinwook94/clip/releases/download/v${version}/"
   }
 }
