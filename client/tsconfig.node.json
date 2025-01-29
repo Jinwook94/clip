@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     // Node ESM
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
 
     // tsconfig.node.json 에서 기존 사용하던 설정
     "esModuleInterop": true,

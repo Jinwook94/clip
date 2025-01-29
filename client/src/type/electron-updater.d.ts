@@ -1,10 +1,10 @@
-interface VersionInfo {
+export interface VersionInfo {
   update: boolean;
   version: string;
   newVersion?: string;
 }
 
-interface ErrorType {
+export interface ErrorType {
   message: string;
   error: Error;
 }

@@ -1,39 +1,77 @@
-import { useState } from "react";
-import UpdateElectron from "@/components/update";
-import logoVite from "./assets/logo-vite.svg";
-import logoElectron from "./assets/logo-electron.svg";
-import "./App.css";
+import { useState, useEffect } from "react";
+import ClipHome from "@/components/clips/ClipHome";
+import Sidebar from "@/components/Sidebar";
+import { useClipStore } from "@/store/clipStore";
+import ClipCreateForm from "@/components/clips/ClipCreateForm";
 
 function App() {
-  const [count, setCount] = useState(0);
-  return (
-    <div className="App">
-      <div className="logo-box">
-        <a
-          href="https://github.com/Jinwook94/clip"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <img src={logoVite} className="logo vite" alt="Clip logo" />
-          <img src={logoElectron} className="logo electron" alt="Clip logo" />
-        </a>
-      </div>
-      <h1>Clip</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">Click on the Clip logo to learn more</p>
-      <div className="flex-center">
-        Place static files into the<code>/public</code> folder{" "}
-        <img style={{ width: "5em" }} src="./node.svg" alt="Node logo" />
-      </div>
+  const [init, setInit] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // 사이드바 상태 추가
+  const loadClipsFromDB = useClipStore((s) => s.loadClipsFromDB);
 
-      <UpdateElectron />
+  // 사이드바에서 "새 클립 만들기" 버튼을 누르면
+  const handleCreateNewClip = () => {
+    setShowForm(true);
+  };
+
+  // 사이드바에서 clip 항목을 클릭했을 때
+  const handleSelectClip = (clipId: string) => {
+    setEditingId(clipId);
+  };
+
+  // 예: 글로벌 단축키 메시지
+  useEffect(() => {
+    const handler = (_evt: any, data: any) => {
+      console.log("[shortcut-triggered]", data);
+    };
+    window.ipcRenderer.on("shortcut-triggered", handler);
+    return () => {
+      window.ipcRenderer.off("shortcut-triggered", handler);
+    };
+  }, []);
+
+  useEffect(() => {
+    loadClipsFromDB().then(() => {
+      setInit(true);
+    });
+  }, [loadClipsFromDB]);
+
+  if (!init) {
+    return <div>Loading from DB...</div>;
+  }
+
+  return (
+    <div className="flex h-screen">
+      {/* 왼쪽 사이드바 (isSidebarOpen 상태에 따라 표시) */}
+      {isSidebarOpen && (
+        <Sidebar
+          onCloseSidebar={() => setIsSidebarOpen(false)}
+          onCreateNewClip={handleCreateNewClip}
+          onSelectClip={handleSelectClip}
+          selectedClipId={editingId ?? undefined}
+        />
+      )}
+
+      {/* 오른쪽 메인 영역 */}
+      <div className="flex-1 p-4 overflow-auto">
+        {/* ClipHome에 사이드바 다시 열기 기능 추가 */}
+        <ClipHome
+          onOpenSidebar={() => setIsSidebarOpen(true)}
+          isSidebarOpen={isSidebarOpen}
+        />
+
+        {/* 새 클립 생성 폼 표시 */}
+        {showForm && (
+          <div className="mb-4 border p-4 rounded bg-white text-black">
+            <ClipCreateForm onClose={() => setShowForm(false)} />
+          </div>
+        )}
+
+        {/* 편집 중인 clip이 있으면 ClipEditor 등 표시 가능 */}
+        {/* 현재 예시로 ClipHome을 그대로 유지 */}
+      </div>
     </div>
   );
 }

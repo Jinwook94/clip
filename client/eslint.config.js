@@ -62,6 +62,15 @@ export default [
 
       // React 17+ 부터는 JSX 사용 시 React import 불필요
       "react/react-in-jsx-scope": "off",
+
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          // ^_ 로 시작하는 변수나 파라미터는 미사용이어도 무시
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
     },
   },
 ];

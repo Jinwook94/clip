@@ -27,7 +27,10 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
 
 // --------- Preload scripts loading ---------
 function domReady(
-  condition: DocumentReadyState[] = ["complete", "interactive"],
+  condition: Array<"loading" | "interactive" | "complete"> = [
+    "complete",
+    "interactive",
+  ],
 ) {
   return new Promise((resolve) => {
     if (condition.includes(document.readyState)) {
