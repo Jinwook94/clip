@@ -1,11 +1,26 @@
 {
   "compilerOptions": {
-    "composite": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "resolveJsonModule": true,
+    // Node ESM
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    // tsconfig.node.json 에서 기존 사용하던 설정
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
+    "composite": true,
+    "resolveJsonModule": true,
+
+    // from tsconfig.app.json (shadcn/ui + IDE)
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    // JSX, TS strict 모드 등
+    "jsx": "react-jsx",
+    "strict": true,
+
+    "skipLibCheck": true
   },
-  "include": ["vite.config.ts", "package.json"]
+  // Vitest, Electron 빌드나 기타 필요한 파일
+  "include": ["vite.config.ts", "vitest.config.ts", "package.json"]
 }

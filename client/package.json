@@ -22,6 +22,9 @@
   },
   "dependencies": {
     "electron-updater": "^6.3.9"
+    "lucide-react": "^0.474.0",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
