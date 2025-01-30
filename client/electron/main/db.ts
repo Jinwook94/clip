@@ -1,100 +1,91 @@
-import Database from "better-sqlite3";
+// client/electron/main/db.ts
 import path from "node:path";
 import { app } from "electron";
-import { ClipItem } from "../../src/store/clipStore"; // (렌더러 코드이지만, 타입만 재사용)
+import Database from "better-sqlite3";
+// import { migrate } from "better-sqlite3-migrations"; // 마이그레이션 사용 시
 
+/**
+ * dbPath: userData 폴더 아래에 clip.sqlite3 (필요 시 SQLCipher나 다른 암호화 적용 가능)
+ */
 const dbPath = path.join(app.getPath("userData"), "clip.sqlite3");
-let db: Database.Database;
 
-interface DBClipRow {
-  id: string;
-  name: string;
-  project_root: string;
-  selected_paths?: string;
-  action_type: string;
-  action_code?: string;
-  created_at?: string; // 필요 시
-}
+/**
+ * export let db: Database.Database
+ *  - Repository에서 사용할 DB 인스턴스
+ */
+export let db: Database.Database;
 
+/**
+ * initDB()
+ *  - DB 인스턴스를 생성
+ *  - SQLCipher(옵션), WAL 모드, synchronous 설정
+ *  - 필요 시 better-sqlite3-migrations로 마이그레이션
+ *  - initSchema()로 기본 테이블 보장
+ */
 export function initDB() {
   db = new Database(dbPath, {
-    verbose: console.log, // 모든 쿼리 콘솔 출력
+    verbose: console.log,
   });
 
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS clips (
-                                       id TEXT PRIMARY KEY,
-                                       name TEXT,
-                                       project_root TEXT,
-                                       selected_paths TEXT,
-                                       action_type TEXT,
-                                       action_code TEXT,
-                                       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
+  // (옵션) SQLCipher 키 설정 (better-sqlite3-with-crypto 사용 시)
+  // db.pragma(`KEY='some_strong_password'`);
 
+  // WAL 모드 활성화
+  db.pragma("journal_mode = WAL");
+
+  // 동기화 설정 (NORMAL or FULL; 성능 vs 안정성)
+  db.pragma("synchronous = NORMAL");
+
+  // (옵션) better-sqlite3-migrations
+  // try {
+  //   migrate(db, {
+  //     force: false,
+  //     migrationsPath: path.join(__dirname, "../migrations"),
+  //   });
+  // } catch (err) {
+  //   console.error("[DB] Migration failed:", err);
+  // }
+
+  initSchema();
   console.log("[DB] Initialized at:", dbPath);
 }
 
-// 앱 시작 시 DB에서 모든 Clip 로드
-export function loadAllClipsFromDB(): ClipItem[] {
-  const rows = db.prepare("SELECT * FROM clips").all() as DBClipRow[];
+/**
+ * initSchema()
+ *  - clips, labels, clip_labels 등 테이블이 없으면 생성
+ *  - 기존 컬럼과 충돌 없이 안전하게 생성만 수행
+ */
+function initSchema() {
+  db.exec(`
+        CREATE TABLE IF NOT EXISTS clips (
+                                             id TEXT PRIMARY KEY,
+                                             name TEXT,
+                                             project_root TEXT,
+                                             selected_paths TEXT,
+                                             action_type TEXT,
+                                             action_code TEXT,
+                                             is_favorite INTEGER DEFAULT 0,
+                                             created_at TEXT,
+                                             updated_at TEXT
+        );
+    `);
 
-  return rows.map((r) => ({
-    id: r.id,
-    name: r.name,
-    projectRoot: r.project_root,
-    selectedPaths: JSON.parse(r.selected_paths || "[]"),
+  db.exec(`
+        CREATE TABLE IF NOT EXISTS labels (
+                                              id TEXT PRIMARY KEY,
+                                              name TEXT,
+                                              color TEXT,
+                                              created_at TEXT,
+                                              updated_at TEXT
+        );
+    `);
 
-    // 여기서 단언
-    actionType: r.action_type as ClipItem["actionType"],
-
-    actionCode: r.action_code || undefined,
-    shortcut: undefined,
-  }));
-}
-
-// 새 Clip 추가 (id는 renderer에서 미리 생성한 nanoid)
-export function insertClipToDB(clip: ClipItem) {
-  db.prepare(
-    `
-    INSERT INTO clips (id, name, project_root, selected_paths, action_type, action_code)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `,
-  ).run(
-    clip.id,
-    clip.name,
-    clip.projectRoot,
-    JSON.stringify(clip.selectedPaths),
-    clip.actionType,
-    clip.actionCode || "",
-  );
-}
-
-// Clip 수정
-export function updateClipInDB(clip: ClipItem) {
-  db.prepare(
-    `
-    UPDATE clips
-    SET
-      name=?,
-      project_root=?,
-      selected_paths=?,
-      action_type=?,
-      action_code=?
-    WHERE id=?
-  `,
-  ).run(
-    clip.name,
-    clip.projectRoot,
-    JSON.stringify(clip.selectedPaths),
-    clip.actionType,
-    clip.actionCode || "",
-    clip.id,
-  );
-}
-
-// Clip 삭제
-export function deleteClipFromDB(clipId: string) {
-  db.prepare(`DELETE FROM clips WHERE id=?`).run(clipId);
+  db.exec(`
+        CREATE TABLE IF NOT EXISTS clip_labels (
+                                                   clip_id TEXT,
+                                                   label_id TEXT,
+                                                   created_at TEXT,
+                                                   PRIMARY KEY (clip_id, label_id)
+            );
+    `);
 }

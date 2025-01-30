@@ -1,5 +1,5 @@
-import { globalShortcut, ipcMain } from "electron";
-import { runClipAction } from "./clipActions.js";
+import { ipcMain, globalShortcut } from "electron";
+import { runClipAction } from "../clipActions";
 
 interface ClipItem {
   id: string;
@@ -12,8 +12,11 @@ interface ClipItem {
 
 let currentClips: ClipItem[] = [];
 
-export function initGlobalShortcuts() {
-  // IPC: Renderer에서 "clips-sync"로 clips 배열 전달
+/**
+ * initGlobalShortcutsIpc()
+ *  - "clips-sync" 이벤트 수신 후, 전역 단축키 등록
+ */
+export function initGlobalShortcutsIpc() {
   ipcMain.on("clips-sync", (_evt, newClips: ClipItem[]) => {
     currentClips = newClips;
     reRegisterShortcuts();

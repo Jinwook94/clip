@@ -13,6 +13,20 @@ export default defineConfig(({ command }) => {
   const isBuild = command === "build";
   const sourcemap = isServe || !!process.env.VSCODE_DEBUG;
 
+  /**
+   * server 옵션은 반드시 ServerOptions 혹은 undefined 이어야 함.
+   * 아래 로직을 통해, process.env.VSCODE_DEBUG 가 truthy 면 { host, port },
+   * 아니라면 undefined 로 처리.
+   */
+  let server = undefined;
+  if (process.env.VSCODE_DEBUG) {
+    const url = new URL(pkg.debug.env.VITE_DEV_SERVER_URL);
+    server = {
+      host: url.hostname,
+      port: Number(url.port),
+    };
+  }
+
   return {
     resolve: {
       alias: {
@@ -23,13 +37,10 @@ export default defineConfig(({ command }) => {
       react(),
       electron({
         main: {
-          // Shortcut of `build.lib.entry`
           entry: "electron/main/index.ts",
           onstart(args) {
             if (process.env.VSCODE_DEBUG) {
-              console.log(
-                /* For `.vscode/.debug.script.mjs` */ "[startup] Electron App",
-              );
+              console.log("[startup] Electron App (Debug Mode)");
             } else {
               args.startup();
             }
@@ -48,8 +59,6 @@ export default defineConfig(({ command }) => {
           },
         },
         preload: {
-          // Shortcut of `build.rollupOptions.input`.
-          // Preload scripts may contain Web assets, so use the `build.rollupOptions.input` instead `build.lib.entry`.
           input: "electron/preload/index.ts",
           vite: {
             build: {
@@ -64,21 +73,16 @@ export default defineConfig(({ command }) => {
             },
           },
         },
-        // Ployfill the Electron and Node.js API for Renderer process.
-        // If you want use Node.js in Renderer process, the `nodeIntegration` needs to be enabled in the Main process.
-        // See 👉 https://github.com/electron-vite/vite-plugin-electron-renderer
         renderer: {},
       }),
     ],
-    server:
-      process.env.VSCODE_DEBUG &&
-      (() => {
-        const url = new URL(pkg.debug.env.VITE_DEV_SERVER_URL);
-        return {
-          host: url.hostname,
-          port: +url.port,
-        };
-      })(),
+
+    /**
+     * server: ServerOptions | undefined
+     * - 위에서 정의한 server 변수를 사용
+     */
+    server,
+
     clearScreen: false,
   };
 });

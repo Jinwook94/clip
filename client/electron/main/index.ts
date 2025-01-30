@@ -1,74 +1,51 @@
-// 완성된 전체 코드 (client/electron/main/index.ts)
-
-import {
-  app,
-  BrowserWindow,
-  shell,
-  ipcMain,
-  globalShortcut,
-  dialog,
-} from "electron";
+import { app, BrowserWindow, shell, globalShortcut } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import os from "node:os";
+import store from "./store";
+import { createTray } from "./tray";
+import { update } from "./update";
+import { initAllIpc } from "./ipc";
+import { initAppRepositories } from "./di";
 
-import {
-  deleteClipFromDB,
-  initDB,
-  insertClipToDB,
-  loadAllClipsFromDB,
-  updateClipInDB,
-} from "./db.js";
-import store from "./store.js";
-import { createTray } from "./tray.js";
-import { update } from "./update.js";
-import { readDirectoryStructure } from "./fileSystem.js";
-import { initGlobalShortcuts } from "./globalShortcuts.js";
-import { runClipAction } from "./clipActions";
-import { ClipItem } from "@/store/clipStore";
-
+let win: BrowserWindow | null = null;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  // 필요시 app.quit() 등 처리
 });
 
 process.env.APP_ROOT = path.join(__dirname, "../..");
-
 export const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 export const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
-
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, "public")
   : RENDERER_DIST;
 
-// OS별 설정
+// OS 설정
 if (os.release().startsWith("6.1")) app.disableHardwareAcceleration();
 if (process.platform === "win32") app.setAppUserModelId(app.getName());
 
-// 이미 앱이 실행 중이라면 종료
+// 이미 실행 중이면 종료
 if (!app.requestSingleInstanceLock()) {
   app.quit();
   process.exit(0);
 }
 
-let win: BrowserWindow | null = null;
-const preload = path.join(__dirname, "../preload/index.mjs");
-const indexHtml = path.join(RENDERER_DIST, "index.html");
-
 async function createWindow() {
-  // DB 초기화
-  initDB();
+  // (1) DB + Repositories 초기화
+  const repos = initAppRepositories(); // DB, clipRepository, labelRepository
 
-  // Clip DB 확인
-  const existing = loadAllClipsFromDB();
-  console.log("[DB] loaded clips =>", existing);
+  // (2) 모든 IPC 등록
+  initAllIpc();
 
+  // (선택) Repositories 사용 예시
+  const allClips = await repos.clipRepository.findAll();
+  console.log("[DB] loaded clips =>", allClips);
+
+  // 브라우저 창 생성
   const { width = 900, height = 680 } = store.get("windowBounds") || {};
-
-  // Mac이면 기본 traffic light 버튼을 쓰고, 나머지 OS에는 frame:false 로 (원하는 경우 조정)
   const isMac = process.platform === "darwin";
 
   win = new BrowserWindow({
@@ -76,120 +53,55 @@ async function createWindow() {
     icon: path.join(process.env.VITE_PUBLIC, "favicon.ico"),
     width,
     height,
-    // Mac일 때만 titleBarStyle을 주어 기본 빨강/노랑/초록 버튼이 나타나게 함
     frame: isMac ? true : false,
     titleBarStyle: isMac ? "hiddenInset" : undefined,
-    // 필요에 따라 trafficLightPosition도 세밀 조정 가능
     trafficLightPosition: isMac ? { x: 20, y: 16 } : undefined,
-
     webPreferences: {
-      preload,
+      preload: path.join(__dirname, "../preload/index.mjs"),
     },
   });
 
-  // 창 리사이즈 시, 설정 저장
   win.on("resize", () => {
     if (!win) return;
     const { width, height } = win.getBounds();
     store.set("windowBounds", { width, height });
   });
 
-  // 로딩
   if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL);
+    await win.loadURL(VITE_DEV_SERVER_URL);
     win.webContents.openDevTools();
   } else {
-    win.loadFile(indexHtml);
+    await win.loadFile(path.join(RENDERER_DIST, "index.html"));
   }
 
-  // 예시: 로드 완료 시, 메인 프로세스 메시지 전달
   win.webContents.on("did-finish-load", () => {
     win?.webContents.send("main-process-message", new Date().toLocaleString());
   });
-
-  // 새 창 열기 시도 -> 외부 브라우저
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith("https:")) shell.openExternal(url);
     return { action: "deny" };
   });
 
-  // Tray
   createTray(win);
-
-  // Auto updater
   update(win);
 }
-
-// 디렉토리 선택 IPC
-ipcMain.handle("show-directory-dialog", async (_event) => {
-  const result = await dialog.showOpenDialog({
-    title: "Select Project Root",
-    properties: ["openDirectory"],
-  });
-  // 사용자가 폴더 선택하지 않고 취소하면, 빈 배열
-  if (result.canceled || result.filePaths.length === 0) {
-    return null;
-  }
-  return result.filePaths[0];
-});
-
-ipcMain.handle("clips-load", () => {
-  // DB에서 모든 clip 조회
-  return loadAllClipsFromDB();
-});
-ipcMain.handle("clips-insert", (_e, clip: ClipItem) => {
-  insertClipToDB(clip);
-  return { success: true };
-});
-ipcMain.handle("clips-update", (_e, clip: ClipItem) => {
-  updateClipInDB(clip);
-  return { success: true };
-});
-ipcMain.handle("clips-delete", (_e, clipId: string) => {
-  deleteClipFromDB(clipId);
-  return { success: true };
-});
-
-// Clip 액션 실행 후, 클립보드 복사 같은 상황을 클라이언트에 알림
-// 이미 "clip-run" IPC가 있고, runClipAction을 호출한 뒤, "clip-run-done"을 전송
-// clipActions.ts 안에서 해도 되지만, 간단히 여기서 처리
-ipcMain.on("clip-run", (event, clipData) => {
-  console.log("[clip-run] =>", clipData);
-
-  runClipAction(
-    clipData.actionType,
-    clipData.selectedPaths,
-    clipData.actionCode,
-  );
-
-  let msg = "";
-  if (clipData.actionType === "copy") {
-    msg = "Copied to clipboard!";
-  } else if (clipData.actionType === "txtExtract") {
-    msg = "Txt extract done (copied)!";
-  }
-
-  event.sender.send("clip-run-done", { message: msg });
-});
 
 app.whenReady().then(() => {
   createWindow();
 
-  // 전역 단축키 예시 (기존)
   globalShortcut.register("CommandOrControl+Shift+X", () => {
     console.log("Global Shortcut Triggered!");
     if (win) {
       win.webContents.send("shortcut-triggered", "Hello from main!");
     }
   });
-
-  // 우리가 만든 clips 전역 단축키 시스템 초기화
-  initGlobalShortcuts();
 });
 
 app.on("window-all-closed", () => {
   win = null;
-  if (process.platform !== "darwin") app.quit();
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
 });
 
 app.on("second-instance", () => {
@@ -200,15 +112,7 @@ app.on("second-instance", () => {
 });
 
 app.on("activate", () => {
-  const allWindows = BrowserWindow.getAllWindows();
-  if (allWindows.length) {
-    allWindows[0].focus();
-  } else {
+  if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
-});
-
-// IPC: 폴더 구조 읽기
-ipcMain.handle("read-dir-structure", (_event, rootDir: string) => {
-  return readDirectoryStructure(rootDir);
 });
