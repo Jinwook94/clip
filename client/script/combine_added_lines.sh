@@ -27,8 +27,7 @@ rm -f "$OUTPUT_FILE"
 # 2) (선택) client 트리 구조, 기술스택 등 정보 출력
 ##############################################
 echo "# Clip Project Structure (Electron, React, Vite):" >> "$OUTPUT_FILE"
-# 여기서 script 폴더는 표시되지 않도록 -I "script" 추가
-tree client --charset=ASCII -I "node_modules|dist|.idea|package-lock.json|fonts|script" >> "$OUTPUT_FILE"
+tree client --charset=ASCII -I "node_modules|dist|.idea|package-lock.json|fonts|script|release" >> "$OUTPUT_FILE"
 echo "" >> "$OUTPUT_FILE"
 
 ##############################################
@@ -54,7 +53,7 @@ echo "" >> "$OUTPUT_FILE"
 export GIT_PAGER=cat
 
 ##############################################
-# 4) 변경된 파일 목록(Tracked) 중 v 안에 있는 것만 추출
+# 4) 변경된 파일 목록(Tracked) 중 client 안에 있는 것만 추출
 ##############################################
 STAGED=$(git diff --cached --name-only HEAD -- client)
 UNSTAGED=$(git diff --name-only HEAD -- client)

@@ -31,7 +31,7 @@ mkdir -p "$(dirname "$OUTPUT_FILE")"
 ##############################################
 echo "# Clip Project Structure (Electron, React, Vite):" >> "$OUTPUT_FILE"
 tree . --charset=ASCII \
-  -I "node_modules|dist|.idea|package-lock.json|fonts|script|LICENSE|README.md|.github|.vscode|test|*.gif" \
+  -I "node_modules|dist|.idea|package-lock.json|fonts|script|LICENSE|README.md|.github|.vscode|test|*.gif|release" \
   >> "$OUTPUT_FILE"
 echo "" >> "$OUTPUT_FILE"
 
@@ -81,6 +81,7 @@ find . \
   ! -name "LICENSE" \
   ! -name "README.md" \
   ! -iname "*.gif" \
+  ! -path "*/release/*" \
   | sort \
   | while read -r file
 do

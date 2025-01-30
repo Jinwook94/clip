@@ -29,8 +29,7 @@ rm -f "$OUTPUT_FILE"
 # 2) client 디렉토리 구조 출력
 ##############################################
 echo "# Clip Project Structure (Electron, React, Vite):" >> "$OUTPUT_FILE"
-# 여기서도 script 폴더 제외
-tree client --charset=ASCII -I "node_modules|dist|.idea|package-lock.json|fonts|script" >> "$OUTPUT_FILE"
+tree client --charset=ASCII -I "node_modules|dist|.idea|package-lock.json|fonts|script|release" >> "$OUTPUT_FILE"
 echo "" >> "$OUTPUT_FILE"
 
 ##############################################
