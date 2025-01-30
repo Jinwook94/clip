@@ -1,6 +1,6 @@
 {
   "name": "clip",
-  "version": "2.2.0",
+  "version": "1.0.0",
   "main": "dist-electron/main/index.js",
   "description": "Clip application",
   "author": "Jinwook Kim <kimjinwook94@gmail.com>",

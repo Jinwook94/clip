@@ -11,21 +11,22 @@ export default function ClipManager() {
 
   const [newName, setNewName] = useState("");
   const [newProjectRoot, setNewProjectRoot] = useState("");
-  const [newGitRoot, setNewGitRoot] = useState("");
 
-  const handleCreateClip = () => {
+  // 함수에 async 추가
+  const handleCreateClip = async () => {
     if (!newName) return;
-    const newId = addClip({
+
+    // addClip(...)은 Promise<string> 이므로 await
+    const newId = await addClip({
       name: newName,
       projectRoot: newProjectRoot || "/Users/test/my-project",
-      gitRoot: newGitRoot || undefined,
       selectedPaths: [],
       actionType: "copy",
     });
+
     setSelectedId(newId);
     setNewName("");
     setNewProjectRoot("");
-    setNewGitRoot("");
   };
 
   return (
@@ -44,12 +45,6 @@ export default function ClipManager() {
           value={newProjectRoot}
           onChange={(e) => setNewProjectRoot(e.target.value)}
         />
-        <input
-          className="border p-1"
-          placeholder="Git Root"
-          value={newGitRoot}
-          onChange={(e) => setNewGitRoot(e.target.value)}
-        />
         <button
           onClick={handleCreateClip}
           className="bg-blue-500 text-white px-3"
@@ -62,9 +57,7 @@ export default function ClipManager() {
         {clips.map((clip) => (
           <li
             key={clip.id}
-            className={`cursor-pointer p-1 ${
-              clip.id === selectedId ? "bg-gray-200" : ""
-            }`}
+            className={`cursor-pointer p-1 ${clip.id === selectedId ? "bg-gray-200" : ""}`}
             onClick={() => setSelectedId(clip.id)}
           >
             <div className="flex justify-between">
@@ -86,7 +79,6 @@ export default function ClipManager() {
         ))}
       </ul>
 
-      {/* 상세 편집 */}
       {selectedId && (
         <div className="mt-4">
           <ClipEditor clipId={selectedId} />

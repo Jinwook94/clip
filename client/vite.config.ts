@@ -39,11 +39,7 @@ export default defineConfig(({ command }) => {
         main: {
           entry: "electron/main/index.ts",
           onstart(args) {
-            if (process.env.VSCODE_DEBUG) {
-              console.log("[startup] Electron App (Debug Mode)");
-            } else {
-              args.startup();
-            }
+            return args.startup(); // dev 모드이면 언제든 Electron 을 자동 실행
           },
           vite: {
             build: {
