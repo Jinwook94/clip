@@ -1,5 +1,3 @@
-// file: client/src/components/clips/SortableOtherBlock.tsx
-
 import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -10,20 +8,20 @@ import {
   ContextMenuItem,
 } from "@/components/ui/context-menu";
 import type { BlockItem } from "@/store/blockStore";
+import { useTranslation } from "react-i18next";
 
 interface SortableOtherBlockProps {
   block: BlockItem;
-  // isOver: boolean;  // ← 제거
   onEditBlock: (block: BlockItem) => void;
   onDeleteBlock: (block: BlockItem) => void;
 }
 
 export default function SortableOtherBlock({
   block,
-  // isOver, // ← 제거
   onEditBlock,
   onDeleteBlock,
 }: SortableOtherBlockProps) {
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,
@@ -38,8 +36,6 @@ export default function SortableOtherBlock({
     transition,
     backgroundColor: (block.properties.color as string) ?? "#eee",
     cursor: isDragging ? "grabbing" : "grab",
-    // outline: isOver ? "2px dashed #3399ff" : "none",  // ← 제거
-    // outlineOffset: isOver ? "-4px" : 0,               // ← 제거
   };
 
   const blockName =
@@ -70,8 +66,9 @@ export default function SortableOtherBlock({
       </ContextMenuTrigger>
 
       <ContextMenuContent>
-        <ContextMenuItem onSelect={handleEdit}>Edit</ContextMenuItem>
-        <ContextMenuItem onSelect={handleDelete}>Delete</ContextMenuItem>
+        {/* Edit / Delete 부분 → i18n */}
+        <ContextMenuItem onSelect={handleEdit}>{t("EDIT")}</ContextMenuItem>
+        <ContextMenuItem onSelect={handleDelete}>{t("DELETE")}</ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   );

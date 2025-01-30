@@ -12,6 +12,7 @@ import {
   ContextMenuLabel,
   ContextMenuSeparator,
 } from "@/components/ui/context-menu";
+import { useTranslation } from "react-i18next";
 
 interface BlockCardProps {
   block: BlockItem;
@@ -26,6 +27,7 @@ export default function BlockCard({
   onEditBlock,
   onDeleteBlock,
 }: BlockCardProps) {
+  const { t } = useTranslation();
   const { isOver, setNodeRef } = useDroppable({ id: `clip-${block.id}` });
 
   const blockName =
@@ -79,17 +81,17 @@ export default function BlockCard({
           </div>
 
           <div className="text-xs text-gray-600">
-            content children: {block.content.length} blocks
+            {t("CONTENT_CHILDREN_COUNT", { count: block.content.length })}
           </div>
         </div>
       </ContextMenuTrigger>
 
       {/* 실제 ContextMenu 내용 */}
       <ContextMenuContent>
-        <ContextMenuLabel>Actions</ContextMenuLabel>
+        <ContextMenuLabel>{t("ACTIONS_LABEL")}</ContextMenuLabel>
         <ContextMenuSeparator />
-        <ContextMenuItem onSelect={handleEdit}>Edit</ContextMenuItem>
-        <ContextMenuItem onSelect={handleDelete}>Delete</ContextMenuItem>
+        <ContextMenuItem onSelect={handleEdit}>{t("EDIT")}</ContextMenuItem>
+        <ContextMenuItem onSelect={handleDelete}>{t("DELETE")}</ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   );

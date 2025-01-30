@@ -24,5 +24,23 @@
   "MORE_FAVORITES": "más",
   "NO_FAVORITES": "No hay favoritos todavía.",
   "NO_CLIPS_YET": "Aún no hay Clips. ¡Crea uno nuevo!",
-  "CLOSE_EDITOR": "Cerrar"
+  "CLOSE_EDITOR": "Cerrar",
+
+  "OTHER_BLOCKS": "Otros Bloques",
+  "DELETE_CONFIRM": "¿Estás seguro?",
+  "CONTENT_CHILDREN_COUNT": "Elementos de contenido: {{count}}",
+  "ACTIONS_LABEL": "Acciones",
+  "EDIT_BLOCK": "Editar Bloque",
+  "CREATE_NEW_BLOCK": "Crear un Bloque Nuevo",
+  "CANCEL": "Cancelar",
+  "UPDATE": "Actualizar",
+  "CREATE": "Crear",
+  "BLOCK_TYPE": "Tipo de Bloque",
+  "COLOR": "Color",
+  "NAME": "Nombre",
+  "ROOT_PATH": "Ruta Raíz",
+  "SELECTED_PATHS_LABEL": "Rutas seleccionadas (separadas por comas):",
+  "ACTION_TYPE": "Tipo de Acción",
+  "CODE_OPTIONAL": "Código (opcional)",
+  "ADD_BLOCK_TOOLTIP": "Agregar un nuevo bloque"
 }

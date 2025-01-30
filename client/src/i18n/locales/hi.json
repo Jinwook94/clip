@@ -24,5 +24,23 @@
   "MORE_FAVORITES": "और भी",
   "NO_FAVORITES": "अभी तक कोई पसंदीदा नहीं।",
   "NO_CLIPS_YET": "कोई क्लिप नहीं है। कृपया नया क्लिप बनाएं!",
-  "CLOSE_EDITOR": "बंद करें"
+  "CLOSE_EDITOR": "बंद करें",
+
+  "OTHER_BLOCKS": "अन्य ब्लॉक",
+  "DELETE_CONFIRM": "क्या आप वाकई सुनिश्चित हैं?",
+  "CONTENT_CHILDREN_COUNT": "उप-सामग्री: {{count}} ब्लॉक",
+  "ACTIONS_LABEL": "क्रियाएँ",
+  "EDIT_BLOCK": "ब्लॉक संपादित करें",
+  "CREATE_NEW_BLOCK": "नया ब्लॉक बनाएं",
+  "CANCEL": "रद्द करें",
+  "UPDATE": "अपडेट",
+  "CREATE": "बनाएं",
+  "BLOCK_TYPE": "ब्लॉक का प्रकार",
+  "COLOR": "रंग",
+  "NAME": "नाम",
+  "ROOT_PATH": "रूट पथ",
+  "SELECTED_PATHS_LABEL": "चयनित पथ (कोमा से अलग करें):",
+  "ACTION_TYPE": "एक्शन प्रकार",
+  "CODE_OPTIONAL": "कोड (वैकल्पिक)",
+  "ADD_BLOCK_TOOLTIP": "नया ब्लॉक जोड़ें"
 }

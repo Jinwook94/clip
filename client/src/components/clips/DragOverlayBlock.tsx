@@ -1,5 +1,3 @@
-// file: client/src/components/clips/DragOverlayBlock.tsx
-
 import React from "react";
 import type { BlockItem } from "@/store/blockStore";
 

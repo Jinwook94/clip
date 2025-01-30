@@ -24,5 +24,23 @@
   "MORE_FAVORITES": "plus",
   "NO_FAVORITES": "Pas encore de favoris.",
   "NO_CLIPS_YET": "Aucun clip pour l'instant. Créez-en un!",
-  "CLOSE_EDITOR": "Fermer"
+  "CLOSE_EDITOR": "Fermer",
+
+  "OTHER_BLOCKS": "Autres Blocs",
+  "DELETE_CONFIRM": "Êtes-vous sûr ?",
+  "CONTENT_CHILDREN_COUNT": "Sous-contenu : {{count}} blocs",
+  "ACTIONS_LABEL": "Actions",
+  "EDIT_BLOCK": "Modifier le Bloc",
+  "CREATE_NEW_BLOCK": "Créer un Nouveau Bloc",
+  "CANCEL": "Annuler",
+  "UPDATE": "Mettre à jour",
+  "CREATE": "Créer",
+  "BLOCK_TYPE": "Type de Bloc",
+  "COLOR": "Couleur",
+  "NAME": "Nom",
+  "ROOT_PATH": "Chemin Racine",
+  "SELECTED_PATHS_LABEL": "Chemins sélectionnés (séparés par des virgules) :",
+  "ACTION_TYPE": "Type d'Action",
+  "CODE_OPTIONAL": "Code (optionnel)",
+  "ADD_BLOCK_TOOLTIP": "Ajouter un nouveau bloc"
 }

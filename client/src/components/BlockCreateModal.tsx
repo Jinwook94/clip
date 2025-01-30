@@ -1,5 +1,3 @@
-// file: client/src/components/BlockCreateModal.tsx
-
 import React, { useState, useEffect } from "react";
 import { useBlockStore } from "@/store/blockStore";
 import { Button } from "@/components/ui/button";
@@ -12,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import BlockPropertyForm, { BlockFormData } from "./BlockPropertyForm";
 import type { BlockItem } from "@/store/blockStore";
+import { useTranslation } from "react-i18next";
 
 interface BlockCreateModalProps {
   open: boolean;
@@ -42,6 +41,7 @@ export default function BlockCreateModal({
   onBlockCreated,
   defaultType = "project_root",
 }: BlockCreateModalProps) {
+  const { t } = useTranslation();
   const createBlock = useBlockStore((s) => s.createBlock);
   const updateBlock = useBlockStore((s) => s.updateBlock);
 
@@ -92,7 +92,7 @@ export default function BlockCreateModal({
       <DialogContent className="max-w-[400px]">
         <DialogHeader>
           <DialogTitle>
-            {editingBlock ? "Edit Block" : "Create a New Block"}
+            {editingBlock ? t("EDIT_BLOCK") : t("CREATE_NEW_BLOCK")}
           </DialogTitle>
         </DialogHeader>
 
@@ -107,10 +107,10 @@ export default function BlockCreateModal({
 
         <DialogFooter className="mt-4">
           <Button variant="ghost" onClick={onClose}>
-            Cancel
+            {t("CANCEL")}
           </Button>
           <Button variant="default" onClick={handleSubmit}>
-            {editingBlock ? "Update" : "Create"}
+            {editingBlock ? t("UPDATE") : t("CREATE")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -24,5 +24,23 @@
   "MORE_FAVORITES": "ещё",
   "NO_FAVORITES": "Пока нет избранных.",
   "NO_CLIPS_YET": "Пока нет клипов. Создайте новый!",
-  "CLOSE_EDITOR": "Закрыть"
+  "CLOSE_EDITOR": "Закрыть",
+
+  "OTHER_BLOCKS": "Другие блоки",
+  "DELETE_CONFIRM": "Вы уверены?",
+  "CONTENT_CHILDREN_COUNT": "Дочерние элементы: {{count}} блок(и/ов)",
+  "ACTIONS_LABEL": "Действия",
+  "EDIT_BLOCK": "Редактировать блок",
+  "CREATE_NEW_BLOCK": "Создать новый блок",
+  "CANCEL": "Отмена",
+  "UPDATE": "Обновить",
+  "CREATE": "Создать",
+  "BLOCK_TYPE": "Тип блока",
+  "COLOR": "Цвет",
+  "NAME": "Название",
+  "ROOT_PATH": "Корневой путь",
+  "SELECTED_PATHS_LABEL": "Выбранные пути (через запятую):",
+  "ACTION_TYPE": "Тип действия",
+  "CODE_OPTIONAL": "Код (необязательно)",
+  "ADD_BLOCK_TOOLTIP": "Добавить новый блок"
 }

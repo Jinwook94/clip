@@ -24,5 +24,23 @@
   "MORE_FAVORITES": "개 더 보기",
   "NO_FAVORITES": "즐겨찾기가 없습니다.",
   "NO_CLIPS_YET": "클립이 없습니다. 새 클립을 만들어보세요!",
-  "CLOSE_EDITOR": "편집창 닫기"
+  "CLOSE_EDITOR": "편집창 닫기",
+
+  "OTHER_BLOCKS": "기타 블록들",
+  "DELETE_CONFIRM": "정말 삭제하시겠습니까?",
+  "CONTENT_CHILDREN_COUNT": "하위 컨텐츠: {{count}}개 블록",
+  "ACTIONS_LABEL": "동작",
+  "EDIT_BLOCK": "블록 편집",
+  "CREATE_NEW_BLOCK": "새 블록 만들기",
+  "CANCEL": "취소",
+  "UPDATE": "업데이트",
+  "CREATE": "생성",
+  "BLOCK_TYPE": "블록 타입",
+  "COLOR": "색상",
+  "NAME": "이름",
+  "ROOT_PATH": "루트 경로",
+  "SELECTED_PATHS_LABEL": "선택한 경로들 (쉼표로 구분):",
+  "ACTION_TYPE": "액션 유형",
+  "CODE_OPTIONAL": "코드 (선택)",
+  "ADD_BLOCK_TOOLTIP": "새 블록 추가"
 }

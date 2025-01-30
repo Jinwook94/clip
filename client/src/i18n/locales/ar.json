@@ -24,5 +24,23 @@
   "MORE_FAVORITES": "المزيد",
   "NO_FAVORITES": "لا توجد مفضلات بعد.",
   "NO_CLIPS_YET": "لا توجد مقاطع حتى الآن. يرجى إنشاء مقطع جديد!",
-  "CLOSE_EDITOR": "إغلاق المحرر"
+  "CLOSE_EDITOR": "إغلاق المحرر",
+
+  "OTHER_BLOCKS": "كتل أخرى",
+  "DELETE_CONFIRM": "هل أنت متأكد؟",
+  "CONTENT_CHILDREN_COUNT": "عناصر المحتوى الفرعية: {{count}}",
+  "ACTIONS_LABEL": "إجراءات",
+  "EDIT_BLOCK": "تعديل الكتلة",
+  "CREATE_NEW_BLOCK": "إنشاء كتلة جديدة",
+  "CANCEL": "إلغاء",
+  "UPDATE": "تحديث",
+  "CREATE": "إنشاء",
+  "BLOCK_TYPE": "نوع الكتلة",
+  "COLOR": "لون",
+  "NAME": "اسم",
+  "ROOT_PATH": "المسار الجذر",
+  "SELECTED_PATHS_LABEL": "المسارات المختارة (مفصولة بفواصل):",
+  "ACTION_TYPE": "نوع الإجراء",
+  "CODE_OPTIONAL": "كود (اختياري)",
+  "ADD_BLOCK_TOOLTIP": "أضف كتلة جديدة"
 }

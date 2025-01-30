@@ -22,10 +22,8 @@ import { useBlockStore, BlockItem } from "@/store/blockStore";
 import { ensureClipRunDoneListener } from "@/lib/ipcRendererOnce";
 import BlockCreateModal from "@/components/BlockCreateModal";
 
-// 새로 만든(혹은 기존) 컴포넌트들
 import SortableOtherBlock from "./SortableOtherBlock";
 import EndBlockAdder from "./EndBlockAdder";
-// import DragOverlayBlock from "./DragOverlayBlock"; // 사용 여부에 따라
 import BlockCard from "./BlockCard";
 import DragOverlayBlock from "@/components/clips/DragOverlayBlock";
 
@@ -53,7 +51,7 @@ export default function ClipHome({
 
   // DnD 상태
   const [activeBlock, setActiveBlock] = useState<BlockItem | null>(null);
-  const [overId, setOverId] = useState<string | null>(null);
+  const [, setOverId] = useState<string | null>(null);
 
   useEffect(() => {
     loadBlocksFromDB();
@@ -74,15 +72,17 @@ export default function ClipHome({
       : 9999;
   }
 
+  // clip 타입들
   const clipBlocks = blocks
     .filter((b) => b.type === "clip")
     .sort((a, b) => getSort(a) - getSort(b));
 
+  // 그 외 block 들
   const rawOtherBlocks = blocks
     .filter((b) => b.type !== "clip")
     .sort((a, b) => getSort(a) - getSort(b));
 
-  // placeholder
+  // placeholder block
   const placeholderBlock: BlockItem = {
     id: PLACEHOLDER_ID,
     type: "placeholder",
@@ -120,7 +120,6 @@ export default function ClipHome({
     if (overBlockId.startsWith("clip-")) {
       const clipId = overBlockId.replace("clip-", "");
       if (clipId === draggedId) return;
-
       const clipBlock = blocks.find((b) => b.id === clipId);
       if (!clipBlock) return;
 
@@ -161,7 +160,7 @@ export default function ClipHome({
     setModalOpen(true);
   };
   const handleDeleteBlock = (block: BlockItem) => {
-    if (window.confirm("정말 삭제하시겠습니까?")) {
+    if (window.confirm(t("DELETE_CONFIRM") || "정말 삭제하시겠습니까?")) {
       deleteBlock(block.id);
     }
   };
@@ -185,14 +184,7 @@ export default function ClipHome({
           setEditingBlock(null);
         }}
         editingBlock={editingBlock ?? undefined}
-        /** BlockCreateModal에 onBlockCreated 콜백을 넘겨,
-         *  생성 후 lastCreatedType을 갱신
-         */
         onBlockCreated={handleBlockCreated}
-        /** ↓ ClipHome에서 기본 type을 지정할 수도 있음.
-         *   BlockCreateModal 내부에서 "editingBlock"이 없으면
-         *   default type = lastCreatedType || "project_root"
-         */
         defaultType={lastCreatedType}
       />
 
@@ -236,9 +228,7 @@ export default function ClipHome({
         </div>
 
         <hr className="my-4" />
-        <h2 className="font-bold mb-2">
-          {t("OTHER_BLOCKS") || "Other Blocks"}
-        </h2>
+        <h2 className="font-bold mb-2">{t("OTHER_BLOCKS")}</h2>
 
         <SortableContext
           items={extendedOtherBlocks.map((b) => b.id)}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "react-i18next";
 
 /**
  * 블록 생성/편집 폼에서 사용하는 데이터 구조
@@ -23,6 +24,8 @@ export default function BlockPropertyForm({
   properties,
   onChange,
 }: BlockPropertyFormProps) {
+  const { t } = useTranslation();
+
   const [localType, setLocalType] = useState(blockType);
   const [localProps, setLocalProps] = useState({ ...properties });
 
@@ -48,7 +51,7 @@ export default function BlockPropertyForm({
     <div className="space-y-2">
       {/* 공통: type 선택 */}
       <div>
-        <label className="block font-semibold mb-1">Block Type:</label>
+        <label className="block font-semibold mb-1">{t("BLOCK_TYPE")}:</label>
         <select
           className="border p-1 w-full"
           value={localType}
@@ -63,7 +66,7 @@ export default function BlockPropertyForm({
 
       {/* Color 속성(예시) */}
       <div>
-        <label className="block font-semibold mb-1">Color:</label>
+        <label className="block font-semibold mb-1">{t("COLOR")}:</label>
         <input
           type="color"
           className="w-14 h-7"
@@ -74,17 +77,16 @@ export default function BlockPropertyForm({
 
       {/* 항상 Name 표시 */}
       <div>
-        <label className="block font-semibold mb-1">Name:</label>
+        <label className="block font-semibold mb-1">{t("NAME")}:</label>
         <Input
           value={(localProps.name as string) ?? ""}
           onChange={(e) => updateProp("name", e.target.value)}
         />
       </div>
 
-      {/* type 별 추가 폼 */}
       {localType === "project_root" && (
         <div>
-          <label className="block font-semibold mb-1">Root Path:</label>
+          <label className="block font-semibold mb-1">{t("ROOT_PATH")}:</label>
           <Input
             placeholder="/path/to/project"
             value={(localProps.rootPath as string) ?? ""}
@@ -96,7 +98,7 @@ export default function BlockPropertyForm({
       {localType === "selected_path" && (
         <div>
           <label className="block font-semibold mb-1">
-            Selected Paths (comma-separated):
+            {t("SELECTED_PATHS_LABEL")}
           </label>
           <Input
             placeholder="/src, /public, ..."
@@ -119,7 +121,9 @@ export default function BlockPropertyForm({
       {localType === "action" && (
         <div className="space-y-2">
           <div>
-            <label className="block font-semibold mb-1">Action Type:</label>
+            <label className="block font-semibold mb-1">
+              {t("ACTION_TYPE")}:
+            </label>
             <select
               className="border p-1 w-full"
               value={(localProps.actionType as string) ?? "copy"}
@@ -131,7 +135,9 @@ export default function BlockPropertyForm({
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">Code (optional):</label>
+            <label className="block font-semibold mb-1">
+              {t("CODE_OPTIONAL")}
+            </label>
             <textarea
               className="border w-full h-24 p-2"
               value={(localProps.code as string) ?? ""}

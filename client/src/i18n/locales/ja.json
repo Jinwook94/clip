@@ -24,5 +24,23 @@
   "MORE_FAVORITES": "さらに表示",
   "NO_FAVORITES": "お気に入りがありません。",
   "NO_CLIPS_YET": "まだクリップがありません。作成してください！",
-  "CLOSE_EDITOR": "閉じる"
+  "CLOSE_EDITOR": "閉じる",
+
+  "OTHER_BLOCKS": "その他のブロック",
+  "DELETE_CONFIRM": "よろしいですか？",
+  "CONTENT_CHILDREN_COUNT": "子コンテンツ: {{count}} ブロック",
+  "ACTIONS_LABEL": "アクション",
+  "EDIT_BLOCK": "ブロックを編集",
+  "CREATE_NEW_BLOCK": "新しいブロックを作成",
+  "CANCEL": "キャンセル",
+  "UPDATE": "更新",
+  "CREATE": "作成",
+  "BLOCK_TYPE": "ブロックタイプ",
+  "COLOR": "色",
+  "NAME": "名前",
+  "ROOT_PATH": "ルートパス",
+  "SELECTED_PATHS_LABEL": "選択したパス（コンマ区切り）：",
+  "ACTION_TYPE": "アクションタイプ",
+  "CODE_OPTIONAL": "コード（任意）",
+  "ADD_BLOCK_TOOLTIP": "新しいブロックを追加"
 }

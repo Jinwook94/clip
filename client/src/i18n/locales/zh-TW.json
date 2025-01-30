@@ -24,5 +24,23 @@
   "MORE_FAVORITES": "更多",
   "NO_FAVORITES": "尚無收藏。",
   "NO_CLIPS_YET": "目前沒有剪輯，請先建立一個！",
-  "CLOSE_EDITOR": "關閉"
+  "CLOSE_EDITOR": "關閉",
+
+  "OTHER_BLOCKS": "其他區塊",
+  "DELETE_CONFIRM": "確定要刪除嗎？",
+  "CONTENT_CHILDREN_COUNT": "子內容：{{count}}個區塊",
+  "ACTIONS_LABEL": "操作",
+  "EDIT_BLOCK": "編輯區塊",
+  "CREATE_NEW_BLOCK": "建立新區塊",
+  "CANCEL": "取消",
+  "UPDATE": "更新",
+  "CREATE": "建立",
+  "BLOCK_TYPE": "區塊類型",
+  "COLOR": "顏色",
+  "NAME": "名稱",
+  "ROOT_PATH": "根目錄路徑",
+  "SELECTED_PATHS_LABEL": "已選路徑（逗號分隔）：",
+  "ACTION_TYPE": "操作類型",
+  "CODE_OPTIONAL": "程式碼（選填）",
+  "ADD_BLOCK_TOOLTIP": "新增區塊"
 }

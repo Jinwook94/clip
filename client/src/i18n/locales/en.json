@@ -24,5 +24,23 @@
   "MORE_FAVORITES": "more",
   "NO_FAVORITES": "No favorites yet.",
   "NO_CLIPS_YET": "No Clips yet. Please create one!",
-  "CLOSE_EDITOR": "Close"
+  "CLOSE_EDITOR": "Close",
+
+  "OTHER_BLOCKS": "Other Blocks",
+  "DELETE_CONFIRM": "Are you sure?",
+  "CONTENT_CHILDREN_COUNT": "Content children: {{count}} blocks",
+  "ACTIONS_LABEL": "Actions",
+  "EDIT_BLOCK": "Edit Block",
+  "CREATE_NEW_BLOCK": "Create a New Block",
+  "CANCEL": "Cancel",
+  "UPDATE": "Update",
+  "CREATE": "Create",
+  "BLOCK_TYPE": "Block Type",
+  "COLOR": "Color",
+  "NAME": "Name",
+  "ROOT_PATH": "Root Path",
+  "SELECTED_PATHS_LABEL": "Selected Paths (comma-separated):",
+  "ACTION_TYPE": "Action Type",
+  "CODE_OPTIONAL": "Code (optional)",
+  "ADD_BLOCK_TOOLTIP": "Add a new block"
 }

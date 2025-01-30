@@ -3,6 +3,7 @@
 import React from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { IconPlus } from "@tabler/icons-react";
+import { useTranslation } from "react-i18next";
 
 interface EndBlockAdderProps {
   onAddBlock?: () => void;
@@ -14,6 +15,7 @@ interface EndBlockAdderProps {
  *  - hover 시 살짝 배경색 변화를 줌 (hover:bg-gray-50)
  */
 export default function EndBlockAdder({ onAddBlock }: EndBlockAdderProps) {
+  const { t } = useTranslation();
   const { setNodeRef } = useDroppable({ id: "__end__" });
 
   const handleClick = () => {
@@ -35,6 +37,7 @@ export default function EndBlockAdder({ onAddBlock }: EndBlockAdderProps) {
         minHeight: "50px",
         backgroundColor: "#fff",
       }}
+      title={t("ADD_BLOCK_TOOLTIP") || "Add a new block"}
     >
       <IconPlus className="w-5 h-5 text-gray-400" />
     </div>
