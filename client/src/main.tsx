@@ -5,9 +5,9 @@ import i18n from "./i18n";
 import App from "./App";
 import "./index.css";
 
-// zustand store 구독 → clips 가 바뀔 때마다 IPC 로 동기화
 import { useClipStore } from "./store/clipStore";
 
+// ClipStore 에서 clips 가 바뀌면 메인 프로세스에 sync
 useClipStore.subscribe((state) => {
   const clips = state.clips;
   window.ipcRenderer.send("clips-sync", clips);

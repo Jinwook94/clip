@@ -1,0 +1,28 @@
+{
+  "MY_CLIPS": "मेरे क्लिप्स",
+  "CREATE_CLIP": "नया क्लिप बनाएँ",
+  "CLIPS_MENU": "क्लिप्स",
+  "ACTIONS_MENU": "एक्शन",
+  "SNIPPETS_MENU": "स्निपेट्स",
+  "FAVORITES_HEADER": "पसंदीदा",
+  "LABELS_HEADER": "लेबल्स",
+
+  "ROOT": "रूट",
+  "CREATED": "बनाया गया",
+  "UPDATED": "अपडेट किया गया",
+  "ACTION": "एक्शन",
+  "EDIT": "संपादित करें",
+  "DELETE": "हटाएं",
+  "FAVORITE": "पसंदीदा में जोड़ें",
+  "UNFAVORITE": "पसंदीदा से हटाएँ",
+
+  "LANGUAGE_SELECT": "भाषा",
+  "WELCOME": "Clip में आपका स्वागत है!",
+
+  "SEARCH_PLACEHOLDER": "खोजें...",
+  "HIDE_FAVORITES": "छिपाएँ",
+  "MORE_FAVORITES": "और भी",
+  "NO_FAVORITES": "अभी तक कोई पसंदीदा नहीं।",
+  "NO_CLIPS_YET": "कोई क्लिप नहीं है। कृपया नया क्लिप बनाएं!",
+  "CLOSE_EDITOR": "बंद करें"
+}

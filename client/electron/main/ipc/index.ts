@@ -3,6 +3,9 @@ import { initFileSystemIpc } from "./fileSystemIpc";
 import { initGlobalShortcutsIpc } from "./globalShortcutsIpc";
 import { initLabelIpc } from "./labelIpc";
 import { initUpdateIpc } from "./updateIpc";
+import { ipcMain } from "electron";
+import store from "../store";
+import { changeMainLanguage } from "../i18nMain";
 
 /**
  * initAllIpc()
@@ -14,4 +17,10 @@ export function initAllIpc() {
   initGlobalShortcutsIpc();
   initLabelIpc();
   initUpdateIpc();
+
+  ipcMain.handle("set-language", (_evt, lang: string) => {
+    store.set("locale", lang);
+    changeMainLanguage(lang);
+    return { success: true };
+  });
 }

@@ -1,7 +1,28 @@
 {
-  "HELLO": "Hello",
+  "MY_CLIPS": "My Clips",
+  "CREATE_CLIP": "Create Clip",
+  "CLIPS_MENU": "Clips",
+  "ACTIONS_MENU": "Actions",
+  "SNIPPETS_MENU": "Snippets",
+  "FAVORITES_HEADER": "Favorites",
+  "LABELS_HEADER": "Labels",
+
+  "ROOT": "Root",
+  "CREATED": "Created",
+  "UPDATED": "Updated",
+  "ACTION": "Action",
+  "EDIT": "Edit",
+  "DELETE": "Delete",
+  "FAVORITE": "Favorite",
+  "UNFAVORITE": "Unfavorite",
+
+  "LANGUAGE_SELECT": "Language",
   "WELCOME": "Welcome to Clip!",
-  "LANGUAGE": "Language",
-  "CHECK_UPDATE": "Check for Update",
-  "SELECTED_FILES": "Selected Files"
+
+  "SEARCH_PLACEHOLDER": "Search...",
+  "HIDE_FAVORITES": "Hide",
+  "MORE_FAVORITES": "more",
+  "NO_FAVORITES": "No favorites yet.",
+  "NO_CLIPS_YET": "No Clips yet. Please create one!",
+  "CLOSE_EDITOR": "Close"
 }

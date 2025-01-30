@@ -1,7 +1,7 @@
-// client/electron/main/tray.ts
 import { Tray, Menu, BrowserWindow, app, nativeImage } from "electron";
 import path from "node:path";
 import { setIsQuitting } from "./index";
+import i18nMain from "./i18nMain";
 
 let tray: Tray | null = null;
 
@@ -22,21 +22,16 @@ export function createTray(mainWindow: BrowserWindow) {
     console.log("[Tray] Loaded tray icon:", trayIconPath);
   }
 
-  // 아이콘 크기 조절 (16x16)
-  const resized = nImage.resize({
-    width: 16,
-    height: 16,
-  });
-
+  const resized = nImage.resize({ width: 16, height: 16 });
   tray = new Tray(resized);
-  tray.setToolTip("Clip App");
+
+  // 다국어 툴팁
+  tray.setToolTip(i18nMain.t("CLIP_APP") || "Clip App");
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: "Open Clip",
+      label: i18nMain.t("OPEN_CLIP") || "Open Clip",
       click: () => {
-        // 창이 없으면 새로 만들 수도 있고,
-        // 여기서는 기존 mainWindow가 숨겨져 있는 상태라면 다시 show
         if (!mainWindow.isVisible()) {
           mainWindow.show();
         } else {
@@ -45,9 +40,8 @@ export function createTray(mainWindow: BrowserWindow) {
       },
     },
     {
-      label: "Quit",
+      label: i18nMain.t("QUIT") || "Quit",
       click: () => {
-        // Tray Quit 시에만 실제 종료
         setIsQuitting(true);
         app.quit();
       },

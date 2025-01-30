@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, Star, StarOff } from "lucide-react";
-// lucide-react에서도 별 아이콘 가능(또는 @tabler/icons-react의 IconStar, IconStarFilled)
 import { Button } from "@/components/ui/button";
 import { IconMenu2 } from "@tabler/icons-react";
 import {
@@ -15,16 +14,15 @@ import ClipCreateForm from "./ClipCreateForm";
 import ClipEditor from "./ClipEditor";
 import { useClipStore } from "@/store/clipStore";
 import { ensureClipRunDoneListener } from "@/lib/ipcRendererOnce";
+import { useTranslation } from "react-i18next";
 
 interface ClipHomeProps {
   onOpenSidebar: () => void;
   isSidebarOpen: boolean;
 }
 
-export default function ClipHome({
-  onOpenSidebar,
-  isSidebarOpen,
-}: ClipHomeProps) {
+function ClipHome({ onOpenSidebar, isSidebarOpen }: ClipHomeProps) {
+  const { t } = useTranslation();
   const clips = useClipStore((s) => s.clips);
   const removeClip = useClipStore((s) => s.removeClip);
   const updateClip = useClipStore((s) => s.updateClip);
@@ -51,7 +49,7 @@ export default function ClipHome({
 
   return (
     <div className="flex flex-col w-full h-full">
-      {/* (1) 상단바 */}
+      {/* 상단바 */}
       <div className="flex items-center justify-between mb-4 h-10 drag-region px-2">
         {/* 사이드바 열기 버튼 */}
         {!isSidebarOpen && (
@@ -67,19 +65,22 @@ export default function ClipHome({
 
         {/* 우측: Create Clip 버튼 */}
         <div className="flex items-center gap-2 no-drag-region">
-          <h1 className="text-xl font-bold">My Clips</h1>
+          {/* 하드코딩되었던 "My Clips" → t("MY_CLIPS") */}
+          <h1 className="text-xl font-bold">{t("MY_CLIPS")}</h1>
           <Button variant="outline" onClick={() => setShowForm(true)}>
-            <Plus className="mr-1 w-4 h-4" /> Create Clip
+            {/* "Create Clip" → t("CREATE_CLIP") */}
+            <Plus className="mr-1 w-4 h-4" /> {t("CREATE_CLIP")}
           </Button>
         </div>
       </div>
 
-      {/* (2) 메인 내용 영역 */}
+      {/* 메인 내용 */}
       <div className="flex-1 overflow-auto px-4">
         {showForm && <ClipCreateForm onClose={() => setShowForm(false)} />}
 
         {clips.length === 0 ? (
-          <p>No Clips yet. Please create one!</p>
+          // 예시: "No Clips yet. Please create one!"
+          <p>{t("NO_CLIPS_YET") || "No Clips yet. Please create one!"}</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             {clips.map((clip) => (
@@ -89,24 +90,29 @@ export default function ClipHome({
                 onClick={() => handleRunClip(clip.id)}
               >
                 <CardHeader>
+                  {/* clip.name → 굳이 번역 key가 아니라, 사용자가 작성한 텍스트이므로 그대로 표시 */}
                   <CardTitle>{clip.name}</CardTitle>
-                  <CardDescription>Action: {clip.actionType}</CardDescription>
+                  {/* Action: copy → 하드코딩된 부분도 t("ACTION") + clip.actionType 가능. 
+                      하지만 "copy/txtExtract"는 번역이 애매할 수도 있음. */}
+                  <CardDescription>
+                    {t("ACTION")}: {clip.actionType}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p>Root: {clip.projectRoot}</p>
+                  <p>
+                    {t("ROOT")}: {clip.projectRoot}
+                  </p>
                   {clip.selectedPaths.length > 0 && (
                     <p>{clip.selectedPaths.length} files selected</p>
                   )}
-
-                  {/* UTC 날짜도 표시 예시 */}
                   <div className="text-xs text-gray-500 mt-2">
-                    Created: {clip.createdAt}
+                    {t("CREATED")}: {clip.createdAt}
                     <br />
-                    Updated: {clip.updatedAt}
+                    {t("UPDATED")}: {clip.updatedAt}
                   </div>
                 </CardContent>
                 <CardFooter className="flex gap-2">
-                  {/* (A) 편집 버튼 */}
+                  {/* Edit 버튼: t("EDIT") */}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -118,7 +124,7 @@ export default function ClipHome({
                     <Edit className="w-4 h-4" />
                   </Button>
 
-                  {/* (B) 삭제 버튼 */}
+                  {/* Delete 버튼: t("DELETE") */}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -132,7 +138,7 @@ export default function ClipHome({
                     <Trash2 className="w-4 h-4" />
                   </Button>
 
-                  {/* (C) Favorite 토글 버튼 */}
+                  {/* Favorite: t("FAVORITE") / t("UNFAVORITE") */}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -153,13 +159,13 @@ export default function ClipHome({
           </div>
         )}
 
-        {/* 편집 모드 */}
+        {/* Clip 편집 모드 */}
         {editingId && (
           <div className="p-4 mb-4 border rounded">
             <ClipEditor clipId={editingId} />
             <div className="mt-2 flex justify-end">
               <Button variant="ghost" onClick={() => setEditingId(null)}>
-                Close
+                {t("CLOSE_EDITOR") || "Close"}
               </Button>
             </div>
           </div>
@@ -168,3 +174,5 @@ export default function ClipHome({
     </div>
   );
 }
+
+export default ClipHome;

@@ -1,0 +1,28 @@
+{
+  "MY_CLIPS": "내 클립들",
+  "CREATE_CLIP": "새 클립 만들기",
+  "CLIPS_MENU": "클립",
+  "ACTIONS_MENU": "액션",
+  "SNIPPETS_MENU": "스니펫",
+  "FAVORITES_HEADER": "즐겨찾기",
+  "LABELS_HEADER": "레이블",
+
+  "ROOT": "루트 경로",
+  "CREATED": "생성됨",
+  "UPDATED": "업데이트됨",
+  "ACTION": "액션",
+  "EDIT": "편집",
+  "DELETE": "삭제",
+  "FAVORITE": "즐겨찾기 추가",
+  "UNFAVORITE": "즐겨찾기 해제",
+
+  "LANGUAGE_SELECT": "언어",
+  "WELCOME": "Clip에 오신 것을 환영합니다!",
+
+  "SEARCH_PLACEHOLDER": "검색...",
+  "HIDE_FAVORITES": "숨기기",
+  "MORE_FAVORITES": "개 더 보기",
+  "NO_FAVORITES": "즐겨찾기가 없습니다.",
+  "NO_CLIPS_YET": "클립이 없습니다. 새 클립을 만들어보세요!",
+  "CLOSE_EDITOR": "편집창 닫기"
+}

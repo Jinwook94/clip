@@ -1,0 +1,28 @@
+{
+  "MY_CLIPS": "Meine Clips",
+  "CREATE_CLIP": "Neuen Clip erstellen",
+  "CLIPS_MENU": "Clips",
+  "ACTIONS_MENU": "Aktionen",
+  "SNIPPETS_MENU": "Snippets",
+  "FAVORITES_HEADER": "Favoriten",
+  "LABELS_HEADER": "Labels",
+
+  "ROOT": "Root",
+  "CREATED": "Erstellt am",
+  "UPDATED": "Aktualisiert am",
+  "ACTION": "Aktion",
+  "EDIT": "Bearbeiten",
+  "DELETE": "Löschen",
+  "FAVORITE": "Favorit",
+  "UNFAVORITE": "Favorit entfernen",
+
+  "LANGUAGE_SELECT": "Sprache",
+  "WELCOME": "Willkommen bei Clip!",
+
+  "SEARCH_PLACEHOLDER": "Suchen...",
+  "HIDE_FAVORITES": "Verbergen",
+  "MORE_FAVORITES": "mehr",
+  "NO_FAVORITES": "Noch keine Favoriten.",
+  "NO_CLIPS_YET": "Noch keine Clips. Bitte erstelle einen!",
+  "CLOSE_EDITOR": "Schließen"
+}

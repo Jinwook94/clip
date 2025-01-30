@@ -1,0 +1,28 @@
+{
+  "MY_CLIPS": "Мои клипы",
+  "CREATE_CLIP": "Создать клип",
+  "CLIPS_MENU": "Клипы",
+  "ACTIONS_MENU": "Действия",
+  "SNIPPETS_MENU": "Сниппеты",
+  "FAVORITES_HEADER": "Избранное",
+  "LABELS_HEADER": "Метки",
+
+  "ROOT": "Корень",
+  "CREATED": "Создано",
+  "UPDATED": "Обновлено",
+  "ACTION": "Действие",
+  "EDIT": "Редактировать",
+  "DELETE": "Удалить",
+  "FAVORITE": "В избранное",
+  "UNFAVORITE": "Убрать из избранного",
+
+  "LANGUAGE_SELECT": "Язык",
+  "WELCOME": "Добро пожаловать в Clip!",
+
+  "SEARCH_PLACEHOLDER": "Поиск...",
+  "HIDE_FAVORITES": "Скрыть",
+  "MORE_FAVORITES": "ещё",
+  "NO_FAVORITES": "Пока нет избранных.",
+  "NO_CLIPS_YET": "Пока нет клипов. Создайте новый!",
+  "CLOSE_EDITOR": "Закрыть"
+}

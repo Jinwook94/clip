@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import ClipHome from "@/components/clips/ClipHome";
 import Sidebar from "@/components/Sidebar";
 import { useClipStore } from "@/store/clipStore";
@@ -8,20 +9,23 @@ function App() {
   const [init, setInit] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // 사이드바 상태 추가
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   const loadClipsFromDB = useClipStore((s) => s.loadClipsFromDB);
 
-  // 사이드바에서 "새 클립 만들기" 버튼을 누르면
+  // i18n
+  const { t, i18n } = useTranslation();
+
+  // 사이드바에서 "새 클립 만들기"
   const handleCreateNewClip = () => {
     setShowForm(true);
   };
 
-  // 사이드바에서 clip 항목을 클릭했을 때
+  // 사이드바에서 clip 클릭
   const handleSelectClip = (clipId: string) => {
     setEditingId(clipId);
   };
 
-  // 예: 글로벌 단축키 메시지
   useEffect(() => {
     const handler = (_evt: any, data: any) => {
       console.log("[shortcut-triggered]", data);
@@ -38,13 +42,21 @@ function App() {
     });
   }, [loadClipsFromDB]);
 
+  // 언어 변경
+  const handleChangeLanguage = async (lang: string) => {
+    // React i18n 변경
+    await i18n.changeLanguage(lang);
+    // 메인 프로세스(locale) 변경
+    await window.ipcRenderer.invoke("set-language", lang);
+  };
+
   if (!init) {
     return <div>Loading from DB...</div>;
   }
 
   return (
     <div className="flex h-screen">
-      {/* 왼쪽 사이드바 (isSidebarOpen 상태에 따라 표시) */}
+      {/* 왼쪽 사이드바 */}
       {isSidebarOpen && (
         <Sidebar
           onCloseSidebar={() => setIsSidebarOpen(false)}
@@ -54,23 +66,42 @@ function App() {
         />
       )}
 
-      {/* 오른쪽 메인 영역 */}
+      {/* 메인 영역 */}
       <div className="flex-1 p-4 overflow-auto">
-        {/* ClipHome에 사이드바 다시 열기 기능 추가 */}
+        {/* 언어 선택 드롭다운 */}
+        <div className="flex justify-end mb-2">
+          <select
+            value={i18n.language}
+            onChange={(e) => handleChangeLanguage(e.target.value)}
+            className="border p-1"
+          >
+            {/* 기존 언어 */}
+            <option value="en">English</option>
+            <option value="ko">한국어</option>
+            <option value="zh">中文(简体)</option>
+            <option value="zh-TW">中文(繁體)</option>
+            <option value="es">Español</option>
+            <option value="ar">العربية</option>
+
+            {/* 새로 추가된 언어 */}
+            <option value="de">Deutsch</option>
+            <option value="fr">Français</option>
+            <option value="ja">日本語</option>
+            <option value="ru">Русский</option>
+            <option value="hi">हिन्दी</option>
+          </select>
+        </div>
+
         <ClipHome
           onOpenSidebar={() => setIsSidebarOpen(true)}
           isSidebarOpen={isSidebarOpen}
         />
 
-        {/* 새 클립 생성 폼 표시 */}
         {showForm && (
           <div className="mb-4 border p-4 rounded bg-white text-black">
             <ClipCreateForm onClose={() => setShowForm(false)} />
           </div>
         )}
-
-        {/* 편집 중인 clip이 있으면 ClipEditor 등 표시 가능 */}
-        {/* 현재 예시로 ClipHome을 그대로 유지 */}
       </div>
     </div>
   );

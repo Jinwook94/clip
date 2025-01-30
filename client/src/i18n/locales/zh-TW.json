@@ -1,0 +1,28 @@
+{
+  "MY_CLIPS": "我的剪輯",
+  "CREATE_CLIP": "建立剪輯",
+  "CLIPS_MENU": "剪輯",
+  "ACTIONS_MENU": "操作",
+  "SNIPPETS_MENU": "程式片段",
+  "FAVORITES_HEADER": "收藏",
+  "LABELS_HEADER": "標籤",
+
+  "ROOT": "根目錄",
+  "CREATED": "建立於",
+  "UPDATED": "更新於",
+  "ACTION": "操作",
+  "EDIT": "編輯",
+  "DELETE": "刪除",
+  "FAVORITE": "加入收藏",
+  "UNFAVORITE": "取消收藏",
+
+  "LANGUAGE_SELECT": "語言",
+  "WELCOME": "歡迎使用 Clip！",
+
+  "SEARCH_PLACEHOLDER": "搜尋...",
+  "HIDE_FAVORITES": "隱藏",
+  "MORE_FAVORITES": "更多",
+  "NO_FAVORITES": "尚無收藏。",
+  "NO_CLIPS_YET": "目前沒有剪輯，請先建立一個！",
+  "CLOSE_EDITOR": "關閉"
+}

@@ -1,0 +1,28 @@
+{
+  "MY_CLIPS": "我的剪辑",
+  "CREATE_CLIP": "创建剪辑",
+  "CLIPS_MENU": "剪辑",
+  "ACTIONS_MENU": "操作",
+  "SNIPPETS_MENU": "代码片段",
+  "FAVORITES_HEADER": "收藏",
+  "LABELS_HEADER": "标签",
+
+  "ROOT": "根路径",
+  "CREATED": "创建于",
+  "UPDATED": "更新于",
+  "ACTION": "操作",
+  "EDIT": "编辑",
+  "DELETE": "删除",
+  "FAVORITE": "收藏",
+  "UNFAVORITE": "取消收藏",
+
+  "LANGUAGE_SELECT": "语言",
+  "WELCOME": "欢迎使用 Clip!",
+
+  "SEARCH_PLACEHOLDER": "搜索...",
+  "HIDE_FAVORITES": "隐藏",
+  "MORE_FAVORITES": "更多",
+  "NO_FAVORITES": "尚无收藏夹。",
+  "NO_CLIPS_YET": "尚无剪辑，请创建一个！",
+  "CLOSE_EDITOR": "关闭"
+}

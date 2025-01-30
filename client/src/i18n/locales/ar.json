@@ -1,0 +1,28 @@
+{
+  "MY_CLIPS": "مقاطع الخاصة بي",
+  "CREATE_CLIP": "إنشاء مقطع",
+  "CLIPS_MENU": "مقاطع",
+  "ACTIONS_MENU": "إجراءات",
+  "SNIPPETS_MENU": "قصاصات",
+  "FAVORITES_HEADER": "المفضلة",
+  "LABELS_HEADER": "التسميات",
+
+  "ROOT": "المسار الجذر",
+  "CREATED": "تاريخ الإنشاء",
+  "UPDATED": "تاريخ التحديث",
+  "ACTION": "إجراء",
+  "EDIT": "تعديل",
+  "DELETE": "حذف",
+  "FAVORITE": "إضافة للمفضلة",
+  "UNFAVORITE": "إزالة من المفضلة",
+
+  "LANGUAGE_SELECT": "اللغة",
+  "WELCOME": "مرحبًا بك في Clip!",
+
+  "SEARCH_PLACEHOLDER": "بحث...",
+  "HIDE_FAVORITES": "إخفاء",
+  "MORE_FAVORITES": "المزيد",
+  "NO_FAVORITES": "لا توجد مفضلات بعد.",
+  "NO_CLIPS_YET": "لا توجد مقاطع حتى الآن. يرجى إنشاء مقطع جديد!",
+  "CLOSE_EDITOR": "إغلاق المحرر"
+}

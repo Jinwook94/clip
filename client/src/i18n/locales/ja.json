@@ -1,0 +1,28 @@
+{
+  "MY_CLIPS": "マイクリップ",
+  "CREATE_CLIP": "クリップを作成",
+  "CLIPS_MENU": "クリップ",
+  "ACTIONS_MENU": "アクション",
+  "SNIPPETS_MENU": "スニペット",
+  "FAVORITES_HEADER": "お気に入り",
+  "LABELS_HEADER": "ラベル",
+
+  "ROOT": "ルート",
+  "CREATED": "作成日時",
+  "UPDATED": "更新日時",
+  "ACTION": "アクション",
+  "EDIT": "編集",
+  "DELETE": "削除",
+  "FAVORITE": "お気に入り追加",
+  "UNFAVORITE": "お気に入り解除",
+
+  "LANGUAGE_SELECT": "言語",
+  "WELCOME": "Clipへようこそ！",
+
+  "SEARCH_PLACEHOLDER": "検索...",
+  "HIDE_FAVORITES": "非表示",
+  "MORE_FAVORITES": "さらに表示",
+  "NO_FAVORITES": "お気に入りがありません。",
+  "NO_CLIPS_YET": "まだクリップがありません。作成してください！",
+  "CLOSE_EDITOR": "閉じる"
+}
