@@ -1,33 +1,27 @@
 // client/electron/main/di.ts
 import { db, initDB } from "./db";
-import { ClipSqliteRepository } from "./repository/ClipSqliteRepository";
-import { LabelSqliteRepository } from "./repository/LabelSqliteRepository";
-import { IClipRepository } from "./repository/IClipRepository";
-import { ILabelRepository } from "./repository/ILabelRepository";
+import { BlockSqliteRepository } from "./repository/BlockSqliteRepository";
 
 export interface AppRepositories {
-  clipRepository: IClipRepository;
-  labelRepository: ILabelRepository;
+  blockRepository: BlockSqliteRepository;
 }
 
 let repositories: AppRepositories | null = null;
 
+/**
+ * initAppRepositories()
+ *  - DB 초기화 후 repository 인스턴스를 생성
+ */
 export function initAppRepositories(): AppRepositories {
-  if (repositories) {
-    return repositories;
-  }
+  if (repositories) return repositories;
 
-  // DB 초기화
   initDB();
 
-  // Repository 인스턴스 생성
-  const clipRepository = new ClipSqliteRepository(db);
-  const labelRepository = new LabelSqliteRepository(db);
-
+  const blockRepository = new BlockSqliteRepository(db);
   repositories = {
-    clipRepository,
-    labelRepository,
+    blockRepository,
   };
+
   return repositories;
 }
 

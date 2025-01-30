@@ -1,178 +1,295 @@
-import React, { useEffect, useState } from "react";
-import { Plus, Edit, Trash2, Star, StarOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
+// client/src/components/clips/ClipHome.tsx
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { IconMenu2 } from "@tabler/icons-react";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-import ClipCreateForm from "./ClipCreateForm";
-import ClipEditor from "./ClipEditor";
-import { useClipStore } from "@/store/clipStore";
+  DndContext,
+  DragStartEvent,
+  DragEndEvent,
+  DragOverlay,
+  useDroppable,
+  useDraggable,
+} from "@dnd-kit/core";
+import { Button } from "@/components/ui/button";
+import { useBlockStore, BlockItem } from "@/store/blockStore";
 import { ensureClipRunDoneListener } from "@/lib/ipcRendererOnce";
-import { useTranslation } from "react-i18next";
+import BlockCreateModal from "@/components/BlockCreateModal";
+import BlockPropertyForm from "@/components/BlockPropertyForm";
 
 interface ClipHomeProps {
-  onOpenSidebar: () => void;
   isSidebarOpen: boolean;
+  onOpenSidebar: () => void;
 }
 
-function ClipHome({ onOpenSidebar, isSidebarOpen }: ClipHomeProps) {
+/**
+ * ClipHome:
+ *  - 메인 화면: clip 블록들과 other 블록들 표시
+ *  - "Create Clip" 버튼 → BlockCreateModal
+ *  - DnD 로 clip.content에 other 블록을 삽입
+ */
+export default function ClipHome({
+  isSidebarOpen,
+  onOpenSidebar,
+}: ClipHomeProps) {
   const { t } = useTranslation();
-  const clips = useClipStore((s) => s.clips);
-  const removeClip = useClipStore((s) => s.removeClip);
-  const updateClip = useClipStore((s) => s.updateClip);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
 
+  // blockStore
+  const { blocks, loadBlocksFromDB, updateBlock, deleteBlock, runBlock } =
+    useBlockStore();
+
+  // 드래그 중인 블록 ID
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
+
+  // 새 블록 생성 모달 열림 여부
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // clip 블록 vs 기타 블록 분류
+  const clipBlocks = blocks.filter((b) => b.type === "clip");
+  const otherBlocks = blocks.filter((b) => b.type !== "clip");
+
+  /**
+   * 최초 마운트 시 블록 로딩 & IPC 리스너 등록
+   */
   useEffect(() => {
+    loadBlocksFromDB();
     ensureClipRunDoneListener();
-  }, []);
+  }, [loadBlocksFromDB]);
 
-  // Clip 실행
-  const handleRunClip = (clipId: string) => {
-    const clip = clips.find((c) => c.id === clipId);
-    if (!clip) return;
-    window.ipcRenderer.send("clip-run", clip);
+  /**
+   * 드래그 시작 핸들러
+   */
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveDragId(event.active.id as string);
   };
 
-  // Favorite 토글
-  const handleToggleFavorite = async (clipId: string) => {
-    const clip = clips.find((c) => c.id === clipId);
-    if (!clip) return;
-    await updateClip(clipId, { isFavorite: !clip.isFavorite });
+  /**
+   * 드래그 끝났을 때
+   */
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) {
+      setActiveDragId(null);
+      return;
+    }
+    // over.id = "clip-<clipId>" 형태이므로 clipId만 추출
+    const overClipId = (over.id as string).replace("clip-", "");
+    const draggedBlockId = active.id as string;
+
+    if (overClipId === draggedBlockId) {
+      // 자기 자신에 드래그했다면 아무 일도 안 함
+      setActiveDragId(null);
+      return;
+    }
+
+    // clipBlock 찾기
+    const clipBlock = blocks.find((b) => b.id === overClipId);
+    if (!clipBlock) {
+      setActiveDragId(null);
+      return;
+    }
+
+    // content 중복 방지
+    if (!clipBlock.content.includes(draggedBlockId)) {
+      const newContent = [...clipBlock.content, draggedBlockId];
+      await updateBlock(clipBlock.id, { content: newContent });
+    }
+    setActiveDragId(null);
+  };
+
+  /**
+   * clip 실행
+   */
+  const handleRunClip = (clipId: string) => {
+    runBlock(clipId);
   };
 
   return (
-    <div className="flex flex-col w-full h-full">
-      {/* 상단바 */}
-      <div className="flex items-center justify-between mb-4 h-10 drag-region px-2">
-        {/* 사이드바 열기 버튼 */}
-        {!isSidebarOpen && (
+    <>
+      {/* (A) 새 블록 생성 모달 */}
+      <BlockCreateModal open={modalOpen} onClose={() => setModalOpen(false)} />
+
+      {/**
+       * DnDContext: 상단바 + clip 블록들 + other 블록들
+       */}
+      <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        {/* 상단바 */}
+        <div className="flex items-center justify-between mb-4">
+          {/* 사이드바 접힘 상태면 열기 버튼 표시 */}
+          {!isSidebarOpen && (
+            <Button variant="ghost" onClick={onOpenSidebar}>
+              <IconMenu2 className="w-5 h-5" />
+            </Button>
+          )}
+
+          {/* 타이틀: My Clips */}
+          <h1 className="text-xl font-bold">{t("MY_CLIPS")}</h1>
+
+          {/* Create Clip 버튼 */}
+          <Button variant="outline" onClick={() => setModalOpen(true)}>
+            {t("CREATE_CLIP")}
+          </Button>
+        </div>
+
+        {/**
+         * (B) clip 블록들
+         */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {clipBlocks.map((block) => (
+            <BlockCard
+              key={block.id}
+              block={block}
+              onUpdate={(patch) => updateBlock(block.id, patch)}
+              onDelete={() => deleteBlock(block.id)}
+              onRun={() => handleRunClip(block.id)}
+            />
+          ))}
+        </div>
+
+        {/**
+         * (C) 기타 블록들
+         */}
+        <hr className="my-4" />
+        <h2 className="font-bold mb-2">
+          {t("OTHER_BLOCKS") || "Other Blocks"}
+        </h2>
+        <div className="flex flex-wrap gap-2">
+          {otherBlocks.map((b) => (
+            <DraggableBlockItem key={b.id} block={b} />
+          ))}
+        </div>
+
+        {/**
+         * (D) 드래그 오버레이
+         */}
+        <DragOverlay>
+          {activeDragId && (
+            <div className="px-2 py-1 bg-gray-300 rounded border shadow">
+              Dragging {activeDragId}...
+            </div>
+          )}
+        </DragOverlay>
+      </DndContext>
+    </>
+  );
+}
+
+/**
+ * BlockCard
+ *  - clipBlock / otherBlock 모두 렌더 가능
+ *  - droppable (clip-<id>)
+ *  - edit 모드 시 BlockPropertyForm
+ *  - run, delete, etc
+ */
+function BlockCard({
+  block,
+  onUpdate,
+  onDelete,
+  onRun,
+}: {
+  block: BlockItem;
+  onUpdate: (patch: Partial<BlockItem>) => void;
+  onDelete: () => void;
+  onRun?: () => void; // clip일 때만 표시
+}) {
+  // droppable
+  const { isOver, setNodeRef } = useDroppable({ id: `clip-${block.id}` });
+
+  // 편집 모드 여부
+  const [editing, setEditing] = useState(false);
+
+  // 표시 이름
+  const displayName =
+    typeof block.properties.name === "string"
+      ? block.properties.name
+      : `Untitled ${block.type}`;
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`border rounded p-2 ${isOver ? "bg-yellow-100" : "bg-white"}`}
+      style={{
+        backgroundColor: (block.properties?.color as string) || undefined,
+      }}
+    >
+      {/* 헤더 */}
+      <div className="flex justify-between items-center mb-2">
+        <div>
+          <strong>{displayName}</strong> <span>({block.id.slice(0, 6)})</span>
+        </div>
+
+        <div className="flex gap-2">
+          {onRun && block.type === "clip" && (
+            <Button variant="default" size="sm" onClick={onRun}>
+              Run
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"
-            className="no-drag-region mr-2"
-            onClick={onOpenSidebar}
+            onClick={() => setEditing((prev) => !prev)}
           >
-            <IconMenu2 className="w-5 h-5" />
+            {editing ? "Close" : "Edit"}
           </Button>
-        )}
-
-        {/* 우측: Create Clip 버튼 */}
-        <div className="flex items-center gap-2 no-drag-region">
-          {/* 하드코딩되었던 "My Clips" → t("MY_CLIPS") */}
-          <h1 className="text-xl font-bold">{t("MY_CLIPS")}</h1>
-          <Button variant="outline" onClick={() => setShowForm(true)}>
-            {/* "Create Clip" → t("CREATE_CLIP") */}
-            <Plus className="mr-1 w-4 h-4" /> {t("CREATE_CLIP")}
+          <Button variant="ghost" size="sm" onClick={onDelete}>
+            Delete
           </Button>
         </div>
       </div>
 
-      {/* 메인 내용 */}
-      <div className="flex-1 overflow-auto px-4">
-        {showForm && <ClipCreateForm onClose={() => setShowForm(false)} />}
-
-        {clips.length === 0 ? (
-          // 예시: "No Clips yet. Please create one!"
-          <p>{t("NO_CLIPS_YET") || "No Clips yet. Please create one!"}</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            {clips.map((clip) => (
-              <Card
-                key={clip.id}
-                className="relative hover:shadow cursor-pointer"
-                onClick={() => handleRunClip(clip.id)}
-              >
-                <CardHeader>
-                  {/* clip.name → 굳이 번역 key가 아니라, 사용자가 작성한 텍스트이므로 그대로 표시 */}
-                  <CardTitle>{clip.name}</CardTitle>
-                  {/* Action: copy → 하드코딩된 부분도 t("ACTION") + clip.actionType 가능. 
-                      하지만 "copy/txtExtract"는 번역이 애매할 수도 있음. */}
-                  <CardDescription>
-                    {t("ACTION")}: {clip.actionType}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p>
-                    {t("ROOT")}: {clip.projectRoot}
-                  </p>
-                  {clip.selectedPaths.length > 0 && (
-                    <p>{clip.selectedPaths.length} files selected</p>
-                  )}
-                  <div className="text-xs text-gray-500 mt-2">
-                    {t("CREATED")}: {clip.createdAt}
-                    <br />
-                    {t("UPDATED")}: {clip.updatedAt}
-                  </div>
-                </CardContent>
-                <CardFooter className="flex gap-2">
-                  {/* Edit 버튼: t("EDIT") */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingId(clip.id);
-                    }}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-
-                  {/* Delete 버튼: t("DELETE") */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (window.confirm(`Delete "${clip.name}"?`)) {
-                        removeClip(clip.id);
-                      }
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-
-                  {/* Favorite: t("FAVORITE") / t("UNFAVORITE") */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleToggleFavorite(clip.id);
-                    }}
-                  >
-                    {clip.isFavorite ? (
-                      <Star className="w-4 h-4 text-yellow-500" />
-                    ) : (
-                      <StarOff className="w-4 h-4 text-gray-400" />
-                    )}
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Clip 편집 모드 */}
-        {editingId && (
-          <div className="p-4 mb-4 border rounded">
-            <ClipEditor clipId={editingId} />
-            <div className="mt-2 flex justify-end">
-              <Button variant="ghost" onClick={() => setEditingId(null)}>
-                {t("CLOSE_EDITOR") || "Close"}
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* 편집 or info */}
+      {editing ? (
+        <BlockPropertyForm
+          blockType={block.type}
+          properties={block.properties}
+          onChange={(newType, newProps) => {
+            onUpdate({ type: newType, properties: newProps });
+          }}
+        />
+      ) : (
+        <div className="text-xs text-gray-600">
+          content children: {block.content.length} blocks
+        </div>
+      )}
     </div>
   );
 }
 
-export default ClipHome;
+/**
+ * DraggableBlockItem
+ *  - clip이 아닌 other block들
+ *  - useDraggable로 드래그 가능
+ */
+function DraggableBlockItem({ block }: { block: BlockItem }) {
+  // draggable
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: block.id,
+    });
+
+  // 스타일
+  const style: React.CSSProperties = {
+    transform: transform
+      ? `translate(${transform.x}px, ${transform.y}px)`
+      : undefined,
+    opacity: isDragging ? 0.5 : 1,
+    backgroundColor: (block.properties?.color as string) ?? "#eee",
+  };
+
+  // 표시 이름
+  const displayName =
+    typeof block.properties.name === "string"
+      ? block.properties.name
+      : block.type;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="px-2 py-1 border rounded shadow cursor-pointer text-sm"
+    >
+      {displayName} ({block.id.slice(0, 6)})
+    </div>
+  );
+}

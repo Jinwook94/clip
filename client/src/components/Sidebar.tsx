@@ -10,7 +10,7 @@ import {
   IconChevronDown,
   IconChevronRight,
 } from "@tabler/icons-react";
-import { useClipStore } from "@/store/clipStore";
+import { useBlockStore } from "@/store/blockStore";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Titlebar from "./Titlebar";
 import { useTranslation } from "react-i18next";
@@ -26,18 +26,29 @@ interface SidebarProps {
 
 function Sidebar({
   onCloseSidebar,
+  onCreateNewClip,
   onSelectClip,
   selectedClipId,
 }: SidebarProps) {
   const { t } = useTranslation();
-  const clips = useClipStore((s) => s.clips);
-  const [searchTerm, setSearchTerm] = useState("");
-  const favoriteClips = clips.filter((clip) => clip.isFavorite);
-  const [favoritesExpanded, setFavoritesExpanded] = useState(false);
 
+  // blockStore에서 blocks
+  const blocks = useBlockStore((s) => s.blocks);
+
+  // "clip" 타입 블록 중 "properties.isFavorite"가 true인 것만 필터링한다고 가정
+  const clipBlocks = blocks.filter((b) => b.type === "clip");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // 즐겨찾기 필터 (가정: b.properties.isFavorite === true)
+  const favoriteClips = clipBlocks.filter(
+    (clip) => clip.properties.isFavorite === true,
+  );
+
+  const [favoritesExpanded, setFavoritesExpanded] = useState(false);
   const toggleFavoritesExpand = () => {
     setFavoritesExpanded(!favoritesExpanded);
   };
+
   const visibleFavorites = favoritesExpanded
     ? favoriteClips
     : favoriteClips.slice(0, 5);
@@ -103,6 +114,12 @@ function Sidebar({
             <>
               {visibleFavorites.map((clip) => {
                 const isSelected = clip.id === selectedClipId;
+                // clip.properties.name or "No name"
+                const clipName =
+                  typeof clip.properties.name === "string"
+                    ? clip.properties.name
+                    : "No name";
+
                 return (
                   <div
                     key={clip.id}
@@ -111,7 +128,7 @@ function Sidebar({
                       isSelected ? "bg-gray-300" : "hover:bg-[#ECECEC]"
                     }`}
                   >
-                    {clip.name}
+                    {clipName}
                   </div>
                 );
               })}

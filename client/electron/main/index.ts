@@ -49,8 +49,8 @@ async function createWindow() {
   const repos = initAppRepositories();
   initAllIpc();
 
-  const allClips = await repos.clipRepository.findAll();
-  console.log("[DB] loaded clips =>", allClips);
+  const allBlocks = await repos.blockRepository.findAll();
+  console.log("[DB] loaded blocks =>", allBlocks);
 
   const { width = 900, height = 680 } = store.get("windowBounds") || {};
   const isMac = process.platform === "darwin";

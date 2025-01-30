@@ -14,6 +14,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:fix": "npm run rebuild-native && npm run dev",
     "build": "tsc && vite build && electron-builder",
     "rebuild-native": "electron-rebuild -f -w better-sqlite3",
     "preview": "vite preview",
@@ -22,6 +23,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
     "@radix-ui/react-scroll-area": "^1.2.2",
     "@radix-ui/react-slot": "^1.1.1",
     "@tabler/icons-react": "^3.29.0",

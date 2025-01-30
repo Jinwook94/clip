@@ -1,26 +1,19 @@
-import { initClipIpc } from "./clipIpc";
-import { initFileSystemIpc } from "./fileSystemIpc";
-import { initGlobalShortcutsIpc } from "./globalShortcutsIpc";
-import { initLabelIpc } from "./labelIpc";
-import { initUpdateIpc } from "./updateIpc";
 import { ipcMain } from "electron";
 import store from "../store";
-import { changeMainLanguage } from "../i18nMain";
+import { initBlockIpc } from "./blockIpc";
+// 만약 파일 탐색이 필요하면 아래처럼 (주석 해제)
+// import { initFileSystemIpc } from "./fileSystemIpc";
+// import { initUpdateIpc } from "./updateIpc";
 
-/**
- * initAllIpc()
- *  - 모든 IPC 핸들러를 초기화
- */
 export function initAllIpc() {
-  initClipIpc();
-  initFileSystemIpc();
-  initGlobalShortcutsIpc();
-  initLabelIpc();
-  initUpdateIpc();
+  initBlockIpc();
+
+  // 필요 시:
+  // initFileSystemIpc();
+  // initUpdateIpc();
 
   ipcMain.handle("set-language", (_evt, lang: string) => {
     store.set("locale", lang);
-    changeMainLanguage(lang);
     return { success: true };
   });
 }

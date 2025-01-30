@@ -1,16 +1,17 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { I18nextProvider } from "react-i18next";
+
 import i18n from "./i18n";
 import App from "./App";
 import "./index.css";
 
-import { useClipStore } from "./store/clipStore";
+import { useBlockStore } from "@/store/blockStore";
 
-// ClipStore 에서 clips 가 바뀌면 메인 프로세스에 sync
-useClipStore.subscribe((state) => {
-  const clips = state.clips;
-  window.ipcRenderer.send("clips-sync", clips);
+// blockStore에서 blocks가 변경될 때마다 IPC로 "blocks-sync" 이벤트 보냄
+useBlockStore.subscribe((state) => {
+  const blocks = state.blocks;
+  window.ipcRenderer.send("blocks-sync", blocks);
 });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
