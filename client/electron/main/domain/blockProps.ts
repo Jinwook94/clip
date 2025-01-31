@@ -16,5 +16,6 @@ export interface SelectedPathBlockProps {
 /** action 블록: copy, txtExtract 등 액션 유형 및 code 등 */
 export interface ActionBlockProps {
   actionType?: string; // "copy" | "txtExtract" | ...
-  code?: string; // 필요 시
+  code?: string;
+  requiredBlockTypes?: string[];
 }

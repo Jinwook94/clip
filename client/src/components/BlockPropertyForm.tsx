@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
  */
 export interface BlockFormData {
   type: string;
-  properties: Record<string, unknown>; // any 대신 unknown
+  properties: Record<string, unknown>;
 }
 
 /**
@@ -15,15 +15,15 @@ export interface BlockFormData {
  */
 interface BlockPropertyFormProps {
   blockType: string; // 현재 block type
-  properties: Record<string, unknown>; // any 대신 unknown
-  onChange: (newType: string, newProps: Record<string, unknown>) => void; // any 대신 unknown
+  properties: Record<string, unknown>;
+  onChange: (newType: string, newProps: Record<string, unknown>) => void;
 }
 
 export default function BlockPropertyForm({
-  blockType,
-  properties,
-  onChange,
-}: BlockPropertyFormProps) {
+                                            blockType,
+                                            properties,
+                                            onChange,
+                                          }: BlockPropertyFormProps) {
   const { t } = useTranslation();
 
   const [localType, setLocalType] = useState(blockType);
@@ -132,6 +132,37 @@ export default function BlockPropertyForm({
               <option value="copy">copy</option>
               <option value="txtExtract">txtExtract</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-1">
+              {/* 새로 추가: 'requiredBlockTypes' 선택 UI */}
+              Required Block Types (multi-select):
+            </label>
+            <select
+              multiple
+              className="border p-1 w-full h-24"
+              // 만약 stored 값이 string[] 형태라면 그대로 사용
+              value={
+                Array.isArray(localProps.requiredBlockTypes)
+                  ? (localProps.requiredBlockTypes as string[])
+                  : []
+              }
+              onChange={(e) => {
+                const selected = Array.from(e.target.selectedOptions).map(
+                  (opt) => opt.value,
+                );
+                updateProp("requiredBlockTypes", selected);
+              }}
+            >
+              <option value="project_root">project_root</option>
+              <option value="selected_path">selected_path</option>
+              <option value="action">action</option>
+              <option value="clip">clip</option>
+            </select>
+            <small className="text-gray-500">
+              (Hold Ctrl or Shift to select multiple)
+            </small>
           </div>
 
           <div>
