@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { I18nextProvider } from "react-i18next";
 
 import i18n from "./i18n";
@@ -16,8 +17,10 @@ useBlockStore.subscribe((state) => {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <I18nextProvider i18n={i18n}>
-      <App />
-    </I18nextProvider>
+    <TooltipProvider delayDuration={200} disableHoverableContent={true}>
+      <I18nextProvider i18n={i18n}>
+        <App />
+      </I18nextProvider>
+    </TooltipProvider>
   </React.StrictMode>,
 );
