@@ -1,5 +1,3 @@
-// client/electron/main/index.ts
-
 import { app, BrowserWindow, shell, globalShortcut } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";

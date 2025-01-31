@@ -22,9 +22,9 @@ import { useBlockStore, BlockItem } from "@/store/blockStore";
 import { ensureClipRunDoneListener } from "@/lib/ipcRendererOnce";
 import BlockCreateModal from "@/components/BlockCreateModal";
 
-import SortableOtherBlock from "./SortableOtherBlock";
-import EndBlockAdder from "./EndBlockAdder";
 import BlockCard from "./BlockCard";
+import EndBlockAdder from "./EndBlockAdder";
+import ClipBlockCard from "./ClipBlockCard";
 import DragOverlayBlock from "@/components/clips/DragOverlayBlock";
 
 interface ClipHomeProps {
@@ -78,7 +78,7 @@ export default function ClipHome({
     .sort((a, b) => getSort(a) - getSort(b));
 
   // 그 외 block 들
-  const rawOtherBlocks = blocks
+  const rawBlocks = blocks
     .filter((b) => b.type !== "clip")
     .sort((a, b) => getSort(a) - getSort(b));
 
@@ -90,7 +90,7 @@ export default function ClipHome({
     content: [],
     parent: null,
   };
-  const extendedOtherBlocks = [...rawOtherBlocks, placeholderBlock];
+  const extendedBlocks = [...rawBlocks, placeholderBlock];
 
   // DnD 세팅
   const sensors = useSensors(useSensor(PointerSensor));
@@ -130,21 +130,21 @@ export default function ClipHome({
       return;
     }
 
-    // 2) other 블록 재정렬
-    const otherArr = rawOtherBlocks;
-    const oldIndex = otherArr.findIndex((b) => b.id === draggedId);
+    // 2) 블록들 재정렬
+    const blockArr = rawBlocks;
+    const oldIndex = blockArr.findIndex((b) => b.id === draggedId);
     if (oldIndex < 0) return;
 
     let newIndex: number;
     if (overBlockId === PLACEHOLDER_ID) {
-      newIndex = otherArr.length;
+      newIndex = blockArr.length;
     } else {
-      const foundIndex = otherArr.findIndex((b) => b.id === overBlockId);
+      const foundIndex = blockArr.findIndex((b) => b.id === overBlockId);
       if (foundIndex < 0) return;
       newIndex = foundIndex;
     }
 
-    const reordered = arrayMove(otherArr, oldIndex, newIndex);
+    const reordered = arrayMove(blockArr, oldIndex, newIndex);
     for (let i = 0; i < reordered.length; i++) {
       const item = reordered[i];
       await updateBlock(item.id, { properties: { sortOrder: i } });
@@ -217,7 +217,7 @@ export default function ClipHome({
         {/* clip blocks */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           {clipBlocks.map((block) => (
-            <BlockCard
+            <ClipBlockCard
               key={block.id}
               block={block}
               onRunClip={handleRunClip}
@@ -231,11 +231,11 @@ export default function ClipHome({
         <h2 className="font-bold mb-2">{t("BLOCKS")}</h2>
 
         <SortableContext
-          items={extendedOtherBlocks.map((b) => b.id)}
+          items={extendedBlocks.map((b) => b.id)}
           strategy={rectSortingStrategy}
         >
           <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
-            {extendedOtherBlocks.map((block) => {
+            {extendedBlocks.map((block) => {
               if (block.id === PLACEHOLDER_ID) {
                 // "마지막 뒤" 영역
                 return (
@@ -246,7 +246,7 @@ export default function ClipHome({
                 );
               }
               return (
-                <SortableOtherBlock
+                <BlockCard
                   key={block.id}
                   block={block}
                   onEditBlock={handleEditBlock}
