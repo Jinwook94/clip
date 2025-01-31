@@ -26,7 +26,7 @@
   "NO_CLIPS_YET": "尚无剪辑，请创建一个！",
   "CLOSE_EDITOR": "关闭",
 
-  "OTHER_BLOCKS": "其他区块",
+  "BLOCKS": "区块",
   "DELETE_CONFIRM": "确定要删除吗？",
   "CONTENT_CHILDREN_COUNT": "子内容：{{count}}个区块",
   "ACTIONS_LABEL": "操作",

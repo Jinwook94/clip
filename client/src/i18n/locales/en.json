@@ -26,7 +26,7 @@
   "NO_CLIPS_YET": "No Clips yet. Please create one!",
   "CLOSE_EDITOR": "Close",
 
-  "OTHER_BLOCKS": "Other Blocks",
+  "BLOCKS": "Blocks",
   "DELETE_CONFIRM": "Are you sure?",
   "CONTENT_CHILDREN_COUNT": "Content children: {{count}} blocks",
   "ACTIONS_LABEL": "Actions",

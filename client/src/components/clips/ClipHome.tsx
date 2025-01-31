@@ -228,7 +228,7 @@ export default function ClipHome({
         </div>
 
         <hr className="my-4" />
-        <h2 className="font-bold mb-2">{t("OTHER_BLOCKS")}</h2>
+        <h2 className="font-bold mb-2">{t("BLOCKS")}</h2>
 
         <SortableContext
           items={extendedOtherBlocks.map((b) => b.id)}

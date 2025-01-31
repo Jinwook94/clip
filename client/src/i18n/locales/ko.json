@@ -26,7 +26,7 @@
   "NO_CLIPS_YET": "클립이 없습니다. 새 클립을 만들어보세요!",
   "CLOSE_EDITOR": "편집창 닫기",
 
-  "OTHER_BLOCKS": "기타 블록들",
+  "BLOCKS": "블록",
   "DELETE_CONFIRM": "정말 삭제하시겠습니까?",
   "CONTENT_CHILDREN_COUNT": "하위 컨텐츠: {{count}}개 블록",
   "ACTIONS_LABEL": "동작",

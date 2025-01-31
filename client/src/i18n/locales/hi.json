@@ -26,7 +26,7 @@
   "NO_CLIPS_YET": "कोई क्लिप नहीं है। कृपया नया क्लिप बनाएं!",
   "CLOSE_EDITOR": "बंद करें",
 
-  "OTHER_BLOCKS": "अन्य ब्लॉक",
+  "BLOCKS": "ब्लॉक",
   "DELETE_CONFIRM": "क्या आप वाकई सुनिश्चित हैं?",
   "CONTENT_CHILDREN_COUNT": "उप-सामग्री: {{count}} ब्लॉक",
   "ACTIONS_LABEL": "क्रियाएँ",

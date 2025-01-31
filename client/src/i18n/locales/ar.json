@@ -26,7 +26,7 @@
   "NO_CLIPS_YET": "لا توجد مقاطع حتى الآن. يرجى إنشاء مقطع جديد!",
   "CLOSE_EDITOR": "إغلاق المحرر",
 
-  "OTHER_BLOCKS": "كتل أخرى",
+  "BLOCKS": "كتل",
   "DELETE_CONFIRM": "هل أنت متأكد؟",
   "CONTENT_CHILDREN_COUNT": "عناصر المحتوى الفرعية: {{count}}",
   "ACTIONS_LABEL": "إجراءات",

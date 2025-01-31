@@ -26,7 +26,7 @@
   "NO_CLIPS_YET": "Aún no hay Clips. ¡Crea uno nuevo!",
   "CLOSE_EDITOR": "Cerrar",
 
-  "OTHER_BLOCKS": "Otros Bloques",
+  "BLOCKS": "Bloques",
   "DELETE_CONFIRM": "¿Estás seguro?",
   "CONTENT_CHILDREN_COUNT": "Elementos de contenido: {{count}}",
   "ACTIONS_LABEL": "Acciones",

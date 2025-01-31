@@ -26,7 +26,7 @@
   "NO_CLIPS_YET": "まだクリップがありません。作成してください！",
   "CLOSE_EDITOR": "閉じる",
 
-  "OTHER_BLOCKS": "その他のブロック",
+  "BLOCKS": "ブロック",
   "DELETE_CONFIRM": "よろしいですか？",
   "CONTENT_CHILDREN_COUNT": "子コンテンツ: {{count}} ブロック",
   "ACTIONS_LABEL": "アクション",
