@@ -194,7 +194,7 @@ export default function ClipBlockCard({
       </ContextMenuTrigger>
 
       <ContextMenuContent>
-        <ContextMenuLabel>{t("ACTIONS_LABEL")}</ContextMenuLabel>
+        <ContextMenuLabel>{t("CLIP")}</ContextMenuLabel>
         <ContextMenuSeparator />
         <ContextMenuItem onSelect={handleEdit}>{t("EDIT")}</ContextMenuItem>
         <ContextMenuItem onSelect={handleDelete}>{t("DELETE")}</ContextMenuItem>
