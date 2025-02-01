@@ -1,49 +1,32 @@
-import {
-  ActionBlockProps,
-  ClipBlockProps,
-  ProjectRootBlockProps,
-  SelectedPathBlockProps,
-} from "./blockProps";
+import { ActionBlockProps, ClipBlockProps } from "./blockProps";
 
-/** 블록 공통 필드 */
-interface BaseBlock {
+/** 블록의 공통 필드. properties 의 타입은 제네릭으로 지정 */
+export interface BaseBlock<T = Record<string, unknown>> {
   id: string;
   content: string[];
   parent?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  /** reserved block type: clip, action. 나머지는 사용자 정의 가능 */
+  type: string;
+  /** 각 블록의 properties */
+  properties: T;
 }
 
-/** type: "clip" */
-export interface ClipBlock extends BaseBlock {
+/** reserved block: clip */
+export interface ClipBlock extends BaseBlock<ClipBlockProps> {
   type: "clip";
-  properties: ClipBlockProps;
 }
 
-/** type: "project_root" */
-export interface ProjectRootBlock extends BaseBlock {
-  type: "project_root";
-  properties: ProjectRootBlockProps;
-}
-
-/** type: "selected_path" */
-export interface SelectedPathBlock extends BaseBlock {
-  type: "selected_path";
-  properties: SelectedPathBlockProps;
-}
-
-/** type: "action" */
-export interface ActionBlock extends BaseBlock {
+/** reserved block: action */
+export interface ActionBlock extends BaseBlock<ActionBlockProps> {
   type: "action";
-  properties: ActionBlockProps;
 }
 
-/**
- * 전체 블록 유니온
- *  - 블록 DB에 저장할 때, 결국 AnyBlock (4가지 중 하나)이 될 수 있음
- */
-export type AnyBlock =
-  | ClipBlock
-  | ProjectRootBlock
-  | SelectedPathBlock
-  | ActionBlock;
+/** 사용자 정의 블록 */
+export interface UserDefinedBlock extends BaseBlock {
+  type: Exclude<string, "clip" | "action">;
+}
+
+/** 모든 블록 타입 */
+export type AnyBlock = ClipBlock | ActionBlock | UserDefinedBlock;
