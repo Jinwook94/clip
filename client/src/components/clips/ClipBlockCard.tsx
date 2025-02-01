@@ -21,6 +21,7 @@ import { useBlockStore, BlockItem } from "@/store/blockStore";
 
 interface ClipBlockCardProps {
   block: BlockItem;
+  isOver?: boolean;
   onRunClip?: (clipId: string) => void;
   onEditBlock: (block: BlockItem) => void;
   onDeleteBlock: (block: BlockItem) => void;
@@ -28,6 +29,7 @@ interface ClipBlockCardProps {
 
 export default function ClipBlockCard({
   block,
+  isOver,
   onRunClip,
   onEditBlock,
   onDeleteBlock,
@@ -50,7 +52,9 @@ export default function ClipBlockCard({
     transform: transform ? CSS.Transform.toString(transform) : undefined,
     transition,
     cursor: isDragging ? "grabbing" : "grab",
-    backgroundColor: (block.properties.color as string) || "#ffffff",
+    backgroundColor: isOver
+      ? "#e2e8f0"
+      : (block.properties.color as string) || "#ffffff",
   };
 
   // 자식 블록들(예: actionBlock)
