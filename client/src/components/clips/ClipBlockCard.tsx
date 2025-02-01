@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import { useDroppable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -32,21 +33,40 @@ export default function ClipBlockCard({
   onDeleteBlock,
 }: ClipBlockCardProps) {
   const { t } = useTranslation();
-  const { isOver, setNodeRef } = useDroppable({ id: `clip-${block.id}` });
 
+  /**
+   * Sortable: 드래그/드롭 재정렬
+   */
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: block.id });
+
+  const style: React.CSSProperties = {
+    transform: transform ? CSS.Transform.toString(transform) : undefined,
+    transition,
+    cursor: isDragging ? "grabbing" : "grab",
+    backgroundColor: (block.properties.color as string) || "#ffffff",
+  };
+
+  // 자식 블록들(예: actionBlock)
   const allBlocks = useBlockStore((s) => s.blocks);
+  const childBlocks = useMemo(
+    () => allBlocks.filter((b) => block.content.includes(b.id)),
+    [allBlocks, block.content],
+  );
 
-  const childBlocks = useMemo(() => {
-    return allBlocks.filter((b) => block.content.includes(b.id));
-  }, [allBlocks, block.content]);
-
-  // action 블록(최대 1개)
+  // action 블록 등...
   const actionBlock = childBlocks.find((b) => b.type === "action");
   const actionBlockName = actionBlock
     ? (actionBlock.properties.name as string) || "(No name)"
     : "";
 
-  // actionBlock 이 있으면 requiredBlockTypes 계산
+  // 필요 block type
   let requiredBlockTypes: string[] = [];
   if (actionBlock) {
     requiredBlockTypes =
@@ -63,14 +83,8 @@ export default function ClipBlockCard({
       ? block.properties.name
       : t("UNTITLED") || "Untitled";
 
-  // 실행 버튼 콜백
-  const handleRun = () => {
-    if (onRunClip && block.type === "clip") {
-      onRunClip(block.id);
-    }
-  };
-
-  // 편집 / 삭제 콜백
+  // 실행 / 편집 / 삭제
+  const handleRun = () => onRunClip?.(block.id);
   const handleEdit = () => onEditBlock(block);
   const handleDelete = () => onDeleteBlock(block);
 
@@ -82,7 +96,7 @@ export default function ClipBlockCard({
 
     return (
       <div className="flex items-center gap-2">
-        {/* Run 버튼을 slot들과 나란히 배치 */}
+        {/* (1) 실행버튼 (clip 타입일 때만) */}
         {onRunClip && block.type === "clip" && (
           <Button
             variant="ghost"
@@ -94,7 +108,7 @@ export default function ClipBlockCard({
           </Button>
         )}
 
-        {/* Action slot */}
+        {/* (2) 액션 슬롯 */}
         <Tooltip delayDuration={200}>
           <TooltipTrigger asChild>
             <div
@@ -112,7 +126,7 @@ export default function ClipBlockCard({
           </TooltipContent>
         </Tooltip>
 
-        {/* Required block slots */}
+        {/* (3) requiredBlockTypes 표시 */}
         {actionBlock && requiredBlockTypes.length > 0 && (
           <div className="flex items-center gap-1">
             {requiredBlockTypes.map((rType) => {
@@ -146,9 +160,9 @@ export default function ClipBlockCard({
                         className="h-8 w-8 rounded bg-gray-100 text-gray-400 text-[10px] flex items-center justify-center cursor-default"
                         role="button"
                         tabIndex={0}
-                      ></div>
+                      />
                     </TooltipTrigger>
-                    <TooltipContent side="top">{`${rType}`}</TooltipContent>
+                    <TooltipContent side="top">{rType}</TooltipContent>
                   </Tooltip>
                 );
               }
@@ -164,16 +178,13 @@ export default function ClipBlockCard({
       <ContextMenuTrigger asChild>
         <div
           ref={setNodeRef}
-          className={`relative border rounded p-3 shadow-sm ${
-            isOver ? "bg-yellow-100" : "bg-white"
-          }`}
-          style={{
-            backgroundColor: (block.properties.color as string) || undefined,
-          }}
+          style={style}
+          {...attributes}
+          {...listeners}
+          className="relative border rounded p-3 shadow-sm"
         >
           {/* 클립 이름 */}
           <div className="text-sm font-semibold mb-2">{clipName}</div>
-
           {renderSlotsRow()}
         </div>
       </ContextMenuTrigger>

@@ -25,7 +25,7 @@ import BlockCreateModal from "@/components/BlockCreateModal";
 import BlockCard from "./BlockCard";
 import EndBlockAdder from "./EndBlockAdder";
 import ClipBlockCard from "./ClipBlockCard";
-import DragOverlayBlock from "@/components/clips/DragOverlayBlock";
+import DragOverlayBlock from "./DragOverlayBlock";
 
 interface ClipHomeProps {
   isSidebarOpen: boolean;
@@ -60,7 +60,7 @@ export default function ClipHome({
 
   /**
    * BlockCreateModal에서 새 블록 생성이 완료됐을 때,
-   * 해당 블록의 type을 lastCreatedType으로 갱신하기 위해 사용할 콜백
+   * 해당 블록의 type을 lastCreatedType으로 갱신하기 위해
    */
   const handleBlockCreated = (newType: string) => {
     setLastCreatedType(newType);
@@ -72,12 +72,12 @@ export default function ClipHome({
       : 9999;
   }
 
-  // clip 타입들
+  // clip 타입들 (상단에 표시)
   const clipBlocks = blocks
     .filter((b) => b.type === "clip")
     .sort((a, b) => getSort(a) - getSort(b));
 
-  // 그 외 block 들
+  // 그 외 block 들 (하단에 표시)
   const rawBlocks = blocks
     .filter((b) => b.type !== "clip")
     .sort((a, b) => getSort(a) - getSort(b));
@@ -106,6 +106,9 @@ export default function ClipHome({
     setOverId(newOverId);
   };
 
+  /**
+   * 드래그가 끝났을 때의 로직
+   */
   const handleDragEnd = async (event: DragEndEvent) => {
     setActiveBlock(null);
     setOverId(null);
@@ -114,44 +117,76 @@ export default function ClipHome({
     if (!over) return;
 
     const draggedId = String(active.id);
-    const overBlockId = String(over.id);
+    const overId = String(over.id);
+    if (draggedId === overId) return; // 같은 위치
 
-    // 1) clip 블록 위 드롭
-    if (overBlockId.startsWith("clip-")) {
-      const clipId = overBlockId.replace("clip-", "");
-      if (clipId === draggedId) return;
-      const clipBlock = blocks.find((b) => b.id === clipId);
-      if (!clipBlock) return;
+    const draggedBlock = blocks.find((b) => b.id === draggedId);
+    if (!draggedBlock) return;
 
-      if (!clipBlock.content.includes(draggedId)) {
-        const newContent = [...clipBlock.content, draggedId];
-        await updateBlock(clipBlock.id, { content: newContent });
+    /**
+     * (1) clip 블록인 경우 → clipBlocks 재정렬
+     *  - clip 블록을 다른 clip 블록 위치에 드롭 → 순서 변경
+     *  - clip 블록을 raw blocks 영역, placeholder 등 위에 드롭 → 현재 예시 코드에서는 무시
+     *    (원한다면 분기 처리 가능)
+     */
+    if (draggedBlock.type === "clip") {
+      const oldIndex = clipBlocks.findIndex((b) => b.id === draggedId);
+      if (oldIndex < 0) return;
+      const newIndex = clipBlocks.findIndex((b) => b.id === overId);
+      if (newIndex < 0) return; // clip이 아닌 대상 위라면 재정렬 무시
+
+      // arrayMove 후 DB에 sortOrder 업데이트
+      const reordered = arrayMove(clipBlocks, oldIndex, newIndex);
+      for (let i = 0; i < reordered.length; i++) {
+        await updateBlock(reordered[i].id, { properties: { sortOrder: i } });
       }
       return;
     }
 
-    // 2) 블록들 재정렬
-    const blockArr = rawBlocks;
-    const oldIndex = blockArr.findIndex((b) => b.id === draggedId);
-    if (oldIndex < 0) return;
+    /**
+     * (2) non-clip 블록인 경우
+     *   - clip 블록 위에 드롭 → clipBlock.content 에 자식으로 등록
+     *   - 그렇지 않으면 raw 블록 내에서 재정렬
+     */
+    if (draggedBlock.type !== "clip") {
+      // over가 clip인지 여부 체크
+      const isOverClip = clipBlocks.some((cb) => cb.id === overId);
 
-    let newIndex: number;
-    if (overBlockId === PLACEHOLDER_ID) {
-      newIndex = blockArr.length;
-    } else {
-      const foundIndex = blockArr.findIndex((b) => b.id === overBlockId);
-      if (foundIndex < 0) return;
-      newIndex = foundIndex;
-    }
+      if (isOverClip) {
+        // 자식 등록
+        const targetClip = blocks.find((b) => b.id === overId);
+        if (!targetClip) return;
 
-    const reordered = arrayMove(blockArr, oldIndex, newIndex);
-    for (let i = 0; i < reordered.length; i++) {
-      const item = reordered[i];
-      await updateBlock(item.id, { properties: { sortOrder: i } });
+        if (!targetClip.content.includes(draggedId)) {
+          const newContent = [...targetClip.content, draggedId];
+          await updateBlock(targetClip.id, { content: newContent });
+        }
+        return;
+      } else {
+        // raw block들끼리 재정렬
+        const blockArr = rawBlocks;
+        const oldIndex = blockArr.findIndex((b) => b.id === draggedId);
+        if (oldIndex < 0) return;
+
+        let newIndex: number;
+        if (overId === PLACEHOLDER_ID) {
+          // 끝에 추가
+          newIndex = blockArr.length;
+        } else {
+          const foundIndex = blockArr.findIndex((b) => b.id === overId);
+          if (foundIndex < 0) return;
+          newIndex = foundIndex;
+        }
+
+        const reordered = arrayMove(blockArr, oldIndex, newIndex);
+        for (let i = 0; i < reordered.length; i++) {
+          await updateBlock(reordered[i].id, { properties: { sortOrder: i } });
+        }
+      }
     }
   };
 
-  // -- 핸들러들 --
+  // (기존) 핸들러들
   const handleRunClip = (clipId: string) => {
     runBlock(clipId);
   };
@@ -165,10 +200,7 @@ export default function ClipHome({
     }
   };
 
-  /**
-   * end block의 + 버튼 클릭 → 새 블록 만들기
-   *  - lastCreatedType (없으면 project_root) 를 기본으로
-   */
+  // EndBlockAdder(+) 클릭
   const handleAddBlockAtEnd = () => {
     setEditingBlock(null);
     setModalOpen(true);
@@ -214,22 +246,34 @@ export default function ClipHome({
           </Button>
         </div>
 
-        {/* clip blocks */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          {clipBlocks.map((block) => (
-            <ClipBlockCard
-              key={block.id}
-              block={block}
-              onRunClip={handleRunClip}
-              onEditBlock={handleEditBlock}
-              onDeleteBlock={handleDeleteBlock}
-            />
-          ))}
-        </div>
+        {/**
+         * (A) clip 블록들 → 별도의 SortableContext로 묶어줌
+         *     clip들끼리 재정렬 가능
+         */}
+        <SortableContext
+          items={clipBlocks.map((b) => b.id)}
+          strategy={rectSortingStrategy}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            {clipBlocks.map((block) => (
+              <ClipBlockCard
+                key={block.id}
+                block={block}
+                onRunClip={handleRunClip}
+                onEditBlock={handleEditBlock}
+                onDeleteBlock={handleDeleteBlock}
+              />
+            ))}
+          </div>
+        </SortableContext>
 
         <hr className="my-4" />
         <h2 className="font-bold mb-2">{t("BLOCKS")}</h2>
 
+        {/**
+         * (B) raw 블록들 → 또다른 SortableContext로 묶어줌
+         *     여기에서 block들끼리만 재정렬
+         */}
         <SortableContext
           items={extendedBlocks.map((b) => b.id)}
           strategy={rectSortingStrategy}
@@ -257,6 +301,7 @@ export default function ClipHome({
           </div>
         </SortableContext>
 
+        {/* 드래그 중 Overlay */}
         <DragOverlay dropAnimation={null}>
           {activeBlock && <DragOverlayBlock block={activeBlock} />}
         </DragOverlay>
