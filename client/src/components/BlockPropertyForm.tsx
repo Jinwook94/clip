@@ -20,10 +20,10 @@ interface BlockPropertyFormProps {
 }
 
 export default function BlockPropertyForm({
-                                            blockType,
-                                            properties,
-                                            onChange,
-                                          }: BlockPropertyFormProps) {
+  blockType,
+  properties,
+  onChange,
+}: BlockPropertyFormProps) {
   const { t } = useTranslation();
 
   const [localType, setLocalType] = useState(blockType);

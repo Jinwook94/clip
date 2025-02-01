@@ -11,6 +11,18 @@ import {
 import BlockPropertyForm, { BlockFormData } from "./BlockPropertyForm";
 import type { BlockItem } from "@/store/blockStore";
 import { useTranslation } from "react-i18next";
+import {
+  IconLinkOff,
+  IconHome,
+  IconFile,
+  IconTerminal2,
+} from "@tabler/icons-react";
+
+// ExtendedBlockItem 인터페이스를 추가하여 isEmpty 및 removing 속성을 사용할 수 있도록 함
+interface ExtendedBlockItem extends BlockItem {
+  isEmpty?: boolean;
+  removing?: boolean;
+}
 
 interface BlockCreateModalProps {
   open: boolean;
@@ -30,9 +42,8 @@ interface BlockCreateModalProps {
 
 /**
  * BlockCreateModal
- *  - (A) editingBlock가 없으면 새 블록 생성
- *  - (B) editingBlock가 있으면 해당 블록 정보로 form 초기화 & Update
- *  - shadcn/ui 의 Dialog 컴포넌트를 사용
+ *  - editingBlock가 없으면 새 블록 생성, 있으면 해당 블록 정보로 편집/업데이트
+ *  - Dialog 컴포넌트를 사용
  */
 export default function BlockCreateModal({
   open,
@@ -44,24 +55,75 @@ export default function BlockCreateModal({
   const { t } = useTranslation();
   const createBlock = useBlockStore((s) => s.createBlock);
   const updateBlock = useBlockStore((s) => s.updateBlock);
+  const { blocks } = useBlockStore();
+
+  // 편집 모드용 local state: editingBlock의 복사본을 관리하여 UI에 반영
+  const [localEditingBlock, setLocalEditingBlock] = useState<BlockItem | null>(
+    editingBlock || null,
+  );
+  useEffect(() => {
+    setLocalEditingBlock(editingBlock || null);
+  }, [editingBlock]);
+
+  // localEditingBlock을 기준으로 연결된 블록 목록 계산
+  const connectedBlocks = localEditingBlock
+    ? blocks.filter((b) => localEditingBlock.content.includes(b.id))
+    : [];
+
+  // action 블록은 최상단에, 나머지 블록 및 누락된(required) 블록(빈 슬롯) 표시
+  const actionBlockItem = connectedBlocks.find((b) => b.type === "action");
+  const otherBlocks = connectedBlocks.filter((b) => b.type !== "action");
+
+  const missingBlocks: ExtendedBlockItem[] = actionBlockItem
+    ? (() => {
+        let requiredTypes =
+          (actionBlockItem.properties.requiredBlockTypes as string[]) || [];
+        if (
+          requiredTypes.length === 0 &&
+          (actionBlockItem.properties.actionType as string) === "copy"
+        ) {
+          requiredTypes = ["project_root", "selected_path"];
+        }
+        return requiredTypes
+          .filter((rt) => !connectedBlocks.some((b) => b.type === rt))
+          .map((rt) => ({
+            id: `empty-${rt}`,
+            type: rt,
+            isEmpty: true,
+            properties: {},
+            content: [],
+            parent: null,
+          }));
+      })()
+    : [];
+
+  const finalConnectedBlocks: ExtendedBlockItem[] = [
+    ...(actionBlockItem ? [actionBlockItem as ExtendedBlockItem] : []),
+    ...otherBlocks.map((b) => b as ExtendedBlockItem),
+    ...missingBlocks,
+  ];
+
+  // 로컬 상태로 관리하여 애니메이션 적용
+  const [localConnectedBlocks, setLocalConnectedBlocks] =
+    useState<ExtendedBlockItem[]>(finalConnectedBlocks);
+  useEffect(() => {
+    setLocalConnectedBlocks(finalConnectedBlocks);
+  }, [finalConnectedBlocks]);
 
   // 폼 데이터
   const [formData, setFormData] = useState<BlockFormData>({
     type: "clip",
     properties: {},
   });
-
   useEffect(() => {
     if (editingBlock) {
-      // 편집 모드
       setFormData({
         type: editingBlock.type,
         properties: { ...editingBlock.properties },
       });
     } else {
-      // 새 블록 (기본값)
       setFormData({
-        type: defaultType || "project_root", // 만약 defaultType이 없으면 project_root
+        type: defaultType || "project_root",
         properties: {},
       });
     }
@@ -69,22 +131,58 @@ export default function BlockCreateModal({
 
   const handleSubmit = async () => {
     if (editingBlock) {
-      // Update
       await updateBlock(editingBlock.id, {
         type: formData.type,
         properties: formData.properties,
       });
     } else {
-      // Create
       await createBlock({
         type: formData.type,
         properties: formData.properties,
       });
     }
-    // 생성 완료 후, 콜백
     onBlockCreated?.(formData.type);
-
     onClose();
+  };
+
+  // 각 블록 타입에 맞는 아이콘 반환 함수
+  // action 블록은 전달받은 color를 inline style로 적용하고, 나머지는 기본 아이콘만 반환
+  const getBlockIcon = (type: string, blockColor?: string) => {
+    if (type === "action") {
+      return (
+        <IconTerminal2 className="w-4 h-4" style={{ color: blockColor }} />
+      );
+    }
+    switch (type) {
+      case "project_root":
+        return <IconHome className="w-4 h-4" />;
+      case "selected_path":
+        return <IconFile className="w-4 h-4" />;
+      default:
+        return <IconFile className="w-4 h-4" />;
+    }
+  };
+
+  // disconnect 함수: localEditingBlock 상태 업데이트 후 updateBlock 호출
+  const disconnectBlock = (blockId: string, blockType: string) => {
+    if (blockType === "action") {
+      const confirmed = window.confirm(
+        "Action 블록은 매우 중요합니다. 정말 해제하시겠습니까?",
+      );
+      if (!confirmed) return;
+    }
+    setLocalConnectedBlocks((prev) =>
+      prev.map((b) => (b.id === blockId ? { ...b, removing: true } : b)),
+    );
+    setTimeout(async () => {
+      if (localEditingBlock) {
+        const newContent = localEditingBlock.content.filter(
+          (id) => id !== blockId,
+        );
+        setLocalEditingBlock({ ...localEditingBlock, content: newContent });
+        await updateBlock(localEditingBlock.id, { content: newContent });
+      }
+    }, 300);
   };
 
   return (
@@ -104,6 +202,57 @@ export default function BlockCreateModal({
             setFormData({ type: newType, properties: newProps });
           }}
         />
+
+        {/* clip 타입일 경우, 편집 모드에서 연결된 block들을 표시 */}
+        {formData.type === "clip" && localEditingBlock && (
+          <div className="mt-4">
+            <h3 className="font-semibold mb-2">
+              {t("CONNECTED_BLOCKS", "Connected Blocks")}
+            </h3>
+            <div className="space-y-2">
+              {localConnectedBlocks.map((block) => (
+                <div
+                  key={block.id}
+                  className={`flex items-center justify-between p-2 border rounded transition-all duration-300 ${
+                    block.removing ? "opacity-0 h-0 overflow-hidden" : ""
+                  } ${
+                    block.type === "action"
+                      ? "bg-yellow-50 border-yellow-400"
+                      : "bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {getBlockIcon(
+                      block.type,
+                      block.type === "action"
+                        ? (block.properties as { color?: string }).color
+                        : undefined,
+                    )}
+                    <div className="flex flex-col">
+                      <div className="text-xs text-gray-500">{block.type}</div>
+                      <div className="text-sm font-bold">
+                        {block.isEmpty
+                          ? t("EMPTY_SLOT", `Empty ${block.type}`)
+                          : ((block.properties as { name?: string }).name ??
+                            block.type)}
+                      </div>
+                    </div>
+                  </div>
+                  {/* 실제 연결된 블록이면 disconnect 버튼 표시 */}
+                  {!block.isEmpty && (
+                    <button
+                      onClick={() => disconnectBlock(block.id, block.type)}
+                      title={t("DISCONNECT", "Disconnect")}
+                      className="p-1"
+                    >
+                      <IconLinkOff className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <DialogFooter className="mt-4">
           <Button variant="ghost" onClick={onClose}>
