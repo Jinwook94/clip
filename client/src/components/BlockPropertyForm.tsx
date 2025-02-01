@@ -1,3 +1,4 @@
+// client/src/components/BlockPropertyForm.tsx
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
@@ -136,12 +137,11 @@ export default function BlockPropertyForm({
 
           <div>
             <label className="block font-semibold mb-1">
-              Required Blocks:
+              {t("REQUIRED_BLOCKS")}
             </label>
             <select
               multiple
               className="border p-1 w-full h-24"
-              // 만약 stored 값이 string[] 형태라면 그대로 사용
               value={
                 Array.isArray(localProps.requiredBlockTypes)
                   ? (localProps.requiredBlockTypes as string[])
@@ -154,10 +154,9 @@ export default function BlockPropertyForm({
                 updateProp("requiredBlockTypes", selected);
               }}
             >
+              {/* action 타입의 경우, action과 clip 옵션은 제외 */}
               <option value="project_root">project_root</option>
               <option value="selected_path">selected_path</option>
-              <option value="action">action</option>
-              <option value="clip">clip</option>
             </select>
             <small className="text-gray-500">
               (Hold Ctrl or Shift to select multiple)
