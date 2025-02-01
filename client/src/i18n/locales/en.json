@@ -28,7 +28,6 @@
 
   "BLOCKS": "Blocks",
   "DELETE_CONFIRM": "Are you sure?",
-  "CONTENT_CHILDREN_COUNT": "Content children: {{count}} blocks",
   "ACTIONS_LABEL": "Actions",
   "EDIT_BLOCK": "Edit Block",
   "CREATE_NEW_BLOCK": "Create a New Block",

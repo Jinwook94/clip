@@ -28,7 +28,6 @@
 
   "BLOCKS": "ブロック",
   "DELETE_CONFIRM": "よろしいですか？",
-  "CONTENT_CHILDREN_COUNT": "子コンテンツ: {{count}} ブロック",
   "ACTIONS_LABEL": "アクション",
   "EDIT_BLOCK": "ブロックを編集",
   "CREATE_NEW_BLOCK": "新しいブロックを作成",

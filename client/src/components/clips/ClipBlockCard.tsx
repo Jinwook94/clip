@@ -174,10 +174,7 @@ export default function ClipBlockCard({
           {/* 클립 이름 */}
           <div className="text-sm font-semibold mb-2">{clipName}</div>
 
-          {/* 하단: child count (왼쪽 아래) */}
-          <div className="mt-3 text-xs text-gray-500">
-            {t("CONTENT_CHILDREN_COUNT", { count: block.content.length })}
-          </div>
+          {renderSlotsRow()}
         </div>
       </ContextMenuTrigger>
 

@@ -28,7 +28,6 @@
 
   "BLOCKS": "ब्लॉक",
   "DELETE_CONFIRM": "क्या आप वाकई सुनिश्चित हैं?",
-  "CONTENT_CHILDREN_COUNT": "उप-सामग्री: {{count}} ब्लॉक",
   "ACTIONS_LABEL": "क्रियाएँ",
   "EDIT_BLOCK": "ब्लॉक संपादित करें",
   "CREATE_NEW_BLOCK": "नया ब्लॉक बनाएं",

@@ -28,7 +28,6 @@
 
   "BLOCKS": "区块",
   "DELETE_CONFIRM": "确定要删除吗？",
-  "CONTENT_CHILDREN_COUNT": "子内容：{{count}}个区块",
   "ACTIONS_LABEL": "操作",
   "EDIT_BLOCK": "编辑区块",
   "CREATE_NEW_BLOCK": "创建新区块",

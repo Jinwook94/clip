@@ -28,7 +28,6 @@
 
   "BLOCKS": "كتل",
   "DELETE_CONFIRM": "هل أنت متأكد؟",
-  "CONTENT_CHILDREN_COUNT": "عناصر المحتوى الفرعية: {{count}}",
   "ACTIONS_LABEL": "إجراءات",
   "EDIT_BLOCK": "تعديل الكتلة",
   "CREATE_NEW_BLOCK": "إنشاء كتلة جديدة",

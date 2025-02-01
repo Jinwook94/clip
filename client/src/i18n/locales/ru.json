@@ -28,7 +28,6 @@
 
   "BLOCKS": "Блоки",
   "DELETE_CONFIRM": "Вы уверены?",
-  "CONTENT_CHILDREN_COUNT": "Дочерние элементы: {{count}} блок(и/ов)",
   "ACTIONS_LABEL": "Действия",
   "EDIT_BLOCK": "Редактировать блок",
   "CREATE_NEW_BLOCK": "Создать новый блок",

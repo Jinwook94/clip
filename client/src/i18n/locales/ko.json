@@ -28,7 +28,6 @@
 
   "BLOCKS": "블록",
   "DELETE_CONFIRM": "정말 삭제하시겠습니까?",
-  "CONTENT_CHILDREN_COUNT": "하위 컨텐츠: {{count}}개 블록",
   "ACTIONS_LABEL": "동작",
   "EDIT_BLOCK": "블록 편집",
   "CREATE_NEW_BLOCK": "새 블록 만들기",

@@ -28,7 +28,6 @@
 
   "BLOCKS": "Bloques",
   "DELETE_CONFIRM": "¿Estás seguro?",
-  "CONTENT_CHILDREN_COUNT": "Elementos de contenido: {{count}}",
   "ACTIONS_LABEL": "Acciones",
   "EDIT_BLOCK": "Editar Bloque",
   "CREATE_NEW_BLOCK": "Crear un Bloque Nuevo",
