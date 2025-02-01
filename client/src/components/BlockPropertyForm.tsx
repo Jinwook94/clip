@@ -136,8 +136,7 @@ export default function BlockPropertyForm({
 
           <div>
             <label className="block font-semibold mb-1">
-              {/* 새로 추가: 'requiredBlockTypes' 선택 UI */}
-              Required Block Types (multi-select):
+              Required Blocks:
             </label>
             <select
               multiple

@@ -27,6 +27,13 @@ interface ClipBlockCardProps {
   onDeleteBlock: (block: BlockItem) => void;
 }
 
+/**
+ * ClipBlockCard 컴포넌트는 개별 clip 블록을 카드 형태로 보여줍니다.
+ * 내부에는 드래그/드롭을 위한 UI와 함께,
+ * - 상단에 클립 블록의 이름(이름이 없으면 "Untitled")을 강조하여 표시하고,
+ * - 액션 블록의 슬롯에서는 해당 블록의 name이 비어있다면 "Unnamed Action Block" (혹은 번역된 메시지)
+ *   또는 다른 블록의 경우 "Unnamed Block"으로 표시하여, 이름이 정해지지 않았음을 명확히 전달합니다.
+ */
 export default function ClipBlockCard({
   block,
   isOver,
@@ -36,9 +43,7 @@ export default function ClipBlockCard({
 }: ClipBlockCardProps) {
   const { t } = useTranslation();
 
-  /**
-   * Sortable: 드래그/드롭 재정렬
-   */
+  // 드래그/드롭 관련 속성 획득 (useSortable)
   const {
     attributes,
     listeners,
@@ -57,20 +62,24 @@ export default function ClipBlockCard({
       : (block.properties.color as string) || "#ffffff",
   };
 
-  // 자식 블록들(예: actionBlock)
+  // 전체 블록 상태에서 현재 블록의 자식 블록들(연결된 블록들)을 필터링
   const allBlocks = useBlockStore((s) => s.blocks);
   const childBlocks = useMemo(
     () => allBlocks.filter((b) => block.content.includes(b.id)),
     [allBlocks, block.content],
   );
 
-  // action 블록 등...
+  // action 블록을 찾음 (childBlocks 중 type이 "action"인 블록)
   const actionBlock = childBlocks.find((b) => b.type === "action");
+
   const actionBlockName = actionBlock
-    ? (actionBlock.properties.name as string) || "(No name)"
+    ? typeof actionBlock.properties.name === "string" &&
+      actionBlock.properties.name.trim() !== ""
+      ? actionBlock.properties.name
+      : t("NO_NAME", "No Name")
     : "";
 
-  // 필요 block type
+  // 필요한 requiredBlockTypes 계산 (action 블록이 있으면)
   let requiredBlockTypes: string[] = [];
   if (actionBlock) {
     requiredBlockTypes =
@@ -81,13 +90,15 @@ export default function ClipBlockCard({
     }
   }
 
-  // 블록 이름
+  // clip 블록의 이름 처리:
+  // - block.properties.name이 유효하면 사용하고, 그렇지 않으면 다국어 번역 키 "UNTITLED"를 사용
   const clipName =
-    typeof block.properties.name === "string"
+    typeof block.properties.name === "string" &&
+    block.properties.name.trim() !== ""
       ? block.properties.name
-      : t("UNTITLED") || "Untitled";
+      : t("UNTITLED", "Untitled");
 
-  // 실행 / 편집 / 삭제
+  // 실행, 편집, 삭제 핸들러 정의
   const handleRun = () => onRunClip?.(block.id);
   const handleEdit = () => onEditBlock(block);
   const handleDelete = () => onDeleteBlock(block);
@@ -100,7 +111,7 @@ export default function ClipBlockCard({
 
     return (
       <div className="flex items-center gap-2">
-        {/* (1) 실행버튼 (clip 타입일 때만) */}
+        {/* (1) 실행 버튼: clip 타입일 때만 표시 */}
         {onRunClip && block.type === "clip" && (
           <Button
             variant="ghost"
@@ -112,7 +123,7 @@ export default function ClipBlockCard({
           </Button>
         )}
 
-        {/* (2) 액션 슬롯 */}
+        {/* (2) 액션 슬롯: action 블록의 이름을 표시 */}
         <Tooltip delayDuration={200}>
           <TooltipTrigger asChild>
             <div
@@ -137,9 +148,10 @@ export default function ClipBlockCard({
               const found = childBlocks.find((b) => b.type === rType);
               if (found) {
                 const foundName =
-                  typeof found.properties.name === "string"
+                  typeof found.properties.name === "string" &&
+                  found.properties.name.trim() !== ""
                     ? found.properties.name
-                    : rType;
+                    : t("UNNAMED_BLOCK", "Unnamed Block");
                 return (
                   <Tooltip key={rType} delayDuration={200}>
                     <TooltipTrigger asChild>
@@ -185,9 +197,9 @@ export default function ClipBlockCard({
           style={style}
           {...attributes}
           {...listeners}
-          className="relative border rounded p-3 shadow-sm"
+          className="px-2 py-1 border rounded shadow text-sm relative"
         >
-          {/* 클립 이름 */}
+          {/* 상단에는 클립의 이름을 강조해서 표시 */}
           <div className="text-sm font-semibold mb-2">{clipName}</div>
           {renderSlotsRow()}
         </div>
