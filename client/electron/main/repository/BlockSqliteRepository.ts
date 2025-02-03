@@ -64,9 +64,9 @@ export class BlockSqliteRepository {
     this.db
       .prepare(
         `
-      INSERT INTO blocks (id, type, properties, content, parent, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `,
+            INSERT INTO blocks (id, type, properties, content, parent, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `,
       )
       .run(
         newId,
@@ -94,15 +94,15 @@ export class BlockSqliteRepository {
     this.db
       .prepare(
         `
-      UPDATE blocks
-      SET
-        type = ?,
-        properties = ?,
-        content = ?,
-        parent = ?,
-        updated_at = ?
-      WHERE id = ?
-    `,
+            UPDATE blocks
+            SET
+                type = ?,
+                properties = ?,
+                content = ?,
+                parent = ?,
+                updated_at = ?
+            WHERE id = ?
+        `,
       )
       .run(
         block.type,
@@ -123,9 +123,9 @@ export class BlockSqliteRepository {
     this.db
       .prepare(
         `
-      DELETE FROM blocks
-      WHERE id = ?
-    `,
+            DELETE FROM blocks
+            WHERE id = ?
+        `,
       )
       .run(id);
   }
@@ -150,7 +150,7 @@ export class BlockSqliteRepository {
     // properties JSON parse
     const parsedProps = JSON.parse(row.properties || "{}");
 
-    // type별로 분기 (디스크리미네이티드 유니온)
+    // type별로 분기
     switch (row.type) {
       case "clip":
         return {
@@ -164,21 +164,7 @@ export class BlockSqliteRepository {
           properties: parsedProps,
           ...commonFields,
         };
-      case "project_root":
-        return {
-          type: "project_root",
-          properties: parsedProps,
-          ...commonFields,
-        };
-      case "selected_path":
-        return {
-          type: "selected_path",
-          properties: parsedProps,
-          ...commonFields,
-        };
       default:
-        // 혹은 throw new Error(`Unknown block type: ${row.type}`)
-        // 여기서는 임시로 "clip" 취급
         return {
           type: "clip",
           properties: parsedProps,

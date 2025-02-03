@@ -11,7 +11,7 @@ import {
 import BlockPropertyForm, { BlockFormData } from "./BlockPropertyForm";
 import type { BlockItem } from "@/store/blockStore";
 import { useTranslation } from "react-i18next";
-import { IconHome, IconFile, IconTerminal2, IconX } from "@tabler/icons-react";
+import { IconFile, IconTerminal2, IconX } from "@tabler/icons-react";
 
 interface ExtendedBlockItem extends BlockItem {
   isEmpty?: boolean;
@@ -31,7 +31,7 @@ export default function BlockCreateModal({
   onClose,
   editingBlock,
   onBlockCreated,
-  defaultType = "project_root",
+  defaultType = "clip",
 }: BlockCreateModalProps) {
   const { t } = useTranslation();
   const createBlock = useBlockStore((s) => s.createBlock);
@@ -59,7 +59,7 @@ export default function BlockCreateModal({
       });
     } else {
       setFormData({
-        type: defaultType || "project_root",
+        type: defaultType || "clip",
         properties: {},
       });
     }
@@ -75,34 +75,17 @@ export default function BlockCreateModal({
   // 그 외의 연결된 블록들은 action 블록을 제외한 나머지
   const otherBlocks = connectedBlocks.filter((b) => b.type !== "action");
 
-  // "clip" 블록인 경우, required block 타입들을 계산
-  const requiredTypes: string[] = (() => {
-    if (formData.type !== "clip") return [];
-    if (actionBlockItem) {
-      const rbt = actionBlockItem.properties.requiredBlockTypes as
-        | string[]
-        | undefined;
-      if (Array.isArray(rbt) && rbt.length > 0) {
-        return rbt;
-      } else if ((actionBlockItem.properties.actionType as string) === "copy") {
-        return ["project_root", "selected_path"];
-      }
-      return [];
-    }
-    return ["action", "project_root", "selected_path"];
-  })();
-
+  // "clip" 블록인 경우, required block 타입들을 계산 – 이제 더 이상 추가 타입은 사용하지 않음
+  const requiredTypes: string[] = [];
   // 누락된(아직 연결되지 않은) required 블록들을 empty slot으로 표시
-  const missingBlocks: ExtendedBlockItem[] = requiredTypes
-    .filter((rt) => !connectedBlocks.some((b) => b.type === rt))
-    .map((rt) => ({
-      id: `empty-${rt}`,
-      type: rt,
-      isEmpty: true,
-      properties: {},
-      content: [],
-      parent: null,
-    }));
+  const missingBlocks: ExtendedBlockItem[] = requiredTypes.map((rt) => ({
+    id: `empty-${rt}`,
+    type: rt,
+    isEmpty: true,
+    properties: {},
+    content: [],
+    parent: null,
+  }));
 
   // 최종적으로 표시할 연결된 블록 목록: action 블록, 기타 연결된 블록, 누락된 빈 슬롯
   const finalConnectedBlocks = useMemo(() => {
@@ -157,14 +140,8 @@ export default function BlockCreateModal({
         <IconTerminal2 className="w-4 h-4" style={{ color: blockColor }} />
       );
     }
-    switch (type) {
-      case "project_root":
-        return <IconHome className="w-4 h-4" />;
-      case "selected_path":
-        return <IconFile className="w-4 h-4" />;
-      default:
-        return <IconFile className="w-4 h-4" />;
-    }
+    // 다른 타입은 기본 아이콘 사용
+    return <IconFile className="w-4 h-4" />;
   };
 
   const disconnectBlock = (blockId: string, blockType: string) => {

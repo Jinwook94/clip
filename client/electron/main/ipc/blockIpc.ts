@@ -1,11 +1,6 @@
 import { ipcMain, IpcMainInvokeEvent, IpcMainEvent } from "electron";
 import { getRepositories } from "../di";
-import type {
-  AnyBlock,
-  ClipBlock,
-  ActionBlock,
-  SelectedPathBlock,
-} from "../domain/block";
+import type { AnyBlock, ClipBlock, ActionBlock } from "../domain/block";
 import { clipboard } from "electron";
 
 /**
@@ -106,15 +101,10 @@ export function initBlockIpc(): void {
         ? (actionBlock.properties.actionType as string)
         : "copy";
 
-    // actionBlock.properties.requiredBlockTypes (예: ["project_root", "selected_path"] 등)
-    // 만약 설정이 없고 actionType이 "copy" 라면 디폴트로 project_root, selected_path가 필요하다고 가정
-    let requiredBlockTypes =
-      (actionBlock.properties.requiredBlockTypes as string[]) ?? [];
-    if (requiredBlockTypes.length === 0 && actionType === "copy") {
-      requiredBlockTypes = ["project_root", "selected_path"];
-    }
+    // actionBlock.properties.requiredBlockTypes는 이제 더 이상 사용하지 않으므로 빈 배열로 처리
+    const requiredBlockTypes: string[] = [];
 
-    // requiredBlockTypes 에 있는 블록타입이 모두 children에 존재해야 함
+    // requiredBlockTypes 에 있는 블록타입이 모두 children에 존재해야 함 (여기서는 항상 통과)
     const missingTypes: string[] = [];
     for (const requiredType of requiredBlockTypes) {
       const hasIt = children.some((c) => c.type === requiredType);
@@ -130,21 +120,8 @@ export function initBlockIpc(): void {
       return;
     }
 
-    // actionType에 따라 (예: selected_paths 필요)
-    // selectedPathsBlock
-    const selectedPathsBlock = children.find(
-      (b) => b.type === "selected_path",
-    ) as SelectedPathBlock | undefined;
-    let selectedPaths: string[] = [];
-    if (
-      selectedPathsBlock?.properties?.paths &&
-      Array.isArray(selectedPathsBlock.properties.paths)
-    ) {
-      selectedPaths = selectedPathsBlock.properties.paths as string[];
-    }
-
-    // 실제 액션 실행
-    runClipAction(actionType, selectedPaths);
+    // 실제 액션 실행 – 더 이상 파일 경로 블록이 없으므로 빈 배열 전달
+    runClipAction(actionType, []);
 
     event.sender.send("clip-run-done", {
       error: false,

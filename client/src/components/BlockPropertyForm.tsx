@@ -1,4 +1,3 @@
-// client/src/components/BlockPropertyForm.tsx
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
@@ -59,8 +58,6 @@ export default function BlockPropertyForm({
           onChange={handleTypeChange}
         >
           <option value="clip">clip</option>
-          <option value="project_root">project_root</option>
-          <option value="selected_path">selected_path</option>
           <option value="action">action</option>
         </select>
       </div>
@@ -85,56 +82,8 @@ export default function BlockPropertyForm({
         />
       </div>
 
-      {localType === "project_root" && (
-        <div>
-          <label className="block font-semibold mb-1">{t("ROOT_PATH")}:</label>
-          <Input
-            placeholder="/path/to/project"
-            value={(localProps.rootPath as string) ?? ""}
-            onChange={(e) => updateProp("rootPath", e.target.value)}
-          />
-        </div>
-      )}
-
-      {localType === "selected_path" && (
-        <div>
-          <label className="block font-semibold mb-1">
-            {t("SELECTED_PATHS_LABEL")}
-          </label>
-          <Input
-            placeholder="/src, /public, ..."
-            value={
-              Array.isArray(localProps.paths)
-                ? (localProps.paths as string[]).join(", ")
-                : ""
-            }
-            onChange={(e) => {
-              const arr = e.target.value
-                .split(",")
-                .map((s) => s.trim())
-                .filter((s) => s);
-              updateProp("paths", arr);
-            }}
-          />
-        </div>
-      )}
-
       {localType === "action" && (
         <div className="space-y-2">
-          <div>
-            <label className="block font-semibold mb-1">
-              {t("ACTION_TYPE")}:
-            </label>
-            <select
-              className="border p-1 w-full"
-              value={(localProps.actionType as string) ?? "copy"}
-              onChange={(e) => updateProp("actionType", e.target.value)}
-            >
-              <option value="copy">copy</option>
-              <option value="txtExtract">txtExtract</option>
-            </select>
-          </div>
-
           <div>
             <label className="block font-semibold mb-1">
               {t("REQUIRED_BLOCKS")}
@@ -153,11 +102,7 @@ export default function BlockPropertyForm({
                 );
                 updateProp("requiredBlockTypes", selected);
               }}
-            >
-              {/* action 타입의 경우, action과 clip 옵션은 제외 */}
-              <option value="project_root">project_root</option>
-              <option value="selected_path">selected_path</option>
-            </select>
+            ></select>
             <small className="text-gray-500">
               (Hold Ctrl or Shift to select multiple)
             </small>
