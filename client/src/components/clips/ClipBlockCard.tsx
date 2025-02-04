@@ -35,8 +35,6 @@ export default function ClipBlockCard({
   onDeleteBlock,
 }: ClipBlockCardProps) {
   const { t } = useTranslation();
-
-  // useSortable 훅으로 드래그/드롭 관련 속성 획득
   const {
     attributes,
     listeners,
@@ -46,23 +44,22 @@ export default function ClipBlockCard({
     isDragging,
   } = useSortable({ id: block.id });
 
+  // 항상 pointer 커서를 사용하도록 설정 (드래그 중에는 grabbing)
   const style: React.CSSProperties = {
     transform: transform ? CSS.Transform.toString(transform) : undefined,
     transition,
-    cursor: isDragging ? "grabbing" : "grab",
+    cursor: isDragging ? "grabbing" : "pointer",
     backgroundColor: isOver
       ? "#e2e8f0"
       : (block.properties.color as string) || "#ffffff",
   };
 
-  // clip 블록의 자식 블록들(연결된 블록들) 필터링
   const allBlocks = useBlockStore((s) => s.blocks);
   const childBlocks = useMemo(
     () => allBlocks.filter((b) => block.content.includes(b.id)),
     [allBlocks, block.content],
   );
 
-  // action 블록 찾기 (childBlocks 중 type이 "action"인 블록)
   const actionBlock = childBlocks.find((b) => b.type === "action");
 
   const actionBlockName = actionBlock
@@ -72,25 +69,12 @@ export default function ClipBlockCard({
       : t("NO_NAME", "No Name")
     : "";
 
-  // 필요한 requiredBlockTypes 계산 (action 블록이 있을 경우)
-  let requiredBlockTypes: string[] = [];
-  if (actionBlock) {
-    requiredBlockTypes =
-      (actionBlock.properties.requiredBlockTypes as string[]) ?? [];
-    const actionType = (actionBlock.properties.actionType as string) || "copy";
-    if (requiredBlockTypes.length === 0 && actionType === "copy") {
-      requiredBlockTypes = ["project_root", "selected_path"];
-    }
-  }
-
-  // clip 블록의 이름 처리: 유효한 name이 있으면 사용, 없으면 "Untitled" 사용
   const clipName =
     typeof block.properties.name === "string" &&
     block.properties.name.trim() !== ""
       ? block.properties.name
       : t("UNTITLED", "Untitled");
 
-  // Run, 편집, 삭제 핸들러 정의
   const handleRun = () => onRunClip?.(block.id);
   const handleEdit = () => onEditBlock(block);
   const handleDelete = () => onDeleteBlock(block);
@@ -103,7 +87,6 @@ export default function ClipBlockCard({
 
     return (
       <div className="flex items-center gap-2">
-        {/* Run 버튼: clip 타입일 때만 표시 */}
         {onRunClip && block.type === "clip" && (
           <Button
             variant="ghost"
@@ -122,8 +105,6 @@ export default function ClipBlockCard({
             <IconPlayerPlay className="w-4 h-4" />
           </Button>
         )}
-
-        {/* 액션 슬롯: action 블록의 이름 표시 */}
         <Tooltip delayDuration={200}>
           <TooltipTrigger asChild>
             <div
@@ -140,51 +121,6 @@ export default function ClipBlockCard({
               : "Empty action slot"}
           </TooltipContent>
         </Tooltip>
-
-        {/* requiredBlockTypes 표시 */}
-        {actionBlock && requiredBlockTypes.length > 0 && (
-          <div className="flex items-center gap-1">
-            {requiredBlockTypes.map((rType) => {
-              const found = childBlocks.find((b) => b.type === rType);
-              if (found) {
-                const foundName =
-                  typeof found.properties.name === "string" &&
-                  found.properties.name.trim() !== ""
-                    ? found.properties.name
-                    : t("UNNAMED_BLOCK", "Unnamed Block");
-                return (
-                  <Tooltip key={rType} delayDuration={200}>
-                    <TooltipTrigger asChild>
-                      <div
-                        className="h-8 w-8 rounded bg-blue-100 text-blue-800 text-[10px] flex items-center justify-center cursor-default"
-                        role="button"
-                        tabIndex={0}
-                      >
-                        ✓
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      {`${rType}\n: ${foundName}`}
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              } else {
-                return (
-                  <Tooltip key={rType} delayDuration={200}>
-                    <TooltipTrigger asChild>
-                      <div
-                        className="h-8 w-8 rounded bg-gray-100 text-gray-400 text-[10px] flex items-center justify-center cursor-default"
-                        role="button"
-                        tabIndex={0}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">{rType}</TooltipContent>
-                  </Tooltip>
-                );
-              }
-            })}
-          </div>
-        )}
       </div>
     );
   }
@@ -197,13 +133,17 @@ export default function ClipBlockCard({
           style={style}
           {...attributes}
           {...listeners}
+          // 클릭 시 편집 모달 열기
+          onClick={(e) => {
+            e.stopPropagation();
+            handleEdit();
+          }}
           className="px-2 py-1 border rounded shadow text-sm relative"
         >
           <div className="text-sm font-semibold mb-2">{clipName}</div>
           {renderSlotsRow()}
         </div>
       </ContextMenuTrigger>
-
       <ContextMenuContent>
         <ContextMenuLabel>{t("CLIP")}</ContextMenuLabel>
         <ContextMenuSeparator />

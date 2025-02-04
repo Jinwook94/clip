@@ -27,22 +27,13 @@ import ClipBlockCard from "./ClipBlockCard";
 import DragOverlayBlock from "./DragOverlayBlock";
 import BlockCreateModal from "@/components/BlockCreateModal";
 
-/**
- * ClipHomeProps
- */
 interface ClipHomeProps {
   isSidebarOpen: boolean;
   onOpenSidebar: () => void;
 }
 
-/**
- * placeholder ID
- */
 const PLACEHOLDER_ID = "__end__";
 
-/**
- * ClipHome
- */
 export default function ClipHome({
   isSidebarOpen,
   onOpenSidebar,
@@ -54,16 +45,15 @@ export default function ClipHome({
   const [modalOpen, setModalOpen] = useState(false);
   const [editingBlock, setEditingBlock] = useState<BlockItem | null>(null);
 
-  // 새 블록 생성 시, 어떤 type으로 만들었는지 추적
   const [lastCreatedType, setLastCreatedType] =
     useState<string>("project_root");
 
-  // 드래그 상태
+  // 드래그 중 상태
   const [activeBlock, setActiveBlock] = useState<BlockItem | null>(null);
   const [_, setOverId] = useState<string | null>(null);
   const [overClipId, setOverClipId] = useState<string | null>(null);
 
-  // 초기 로드시 DB에서 blocks 로딩
+  // 초기에 DB 로드
   useEffect(() => {
     loadBlocksFromDB();
     ensureClipRunDoneListener();
@@ -74,18 +64,17 @@ export default function ClipHome({
     setLastCreatedType(newType);
   };
 
-  // sortOrder 구하는 함수
+  // 정렬 기준(우선순위)
   function getSort(block: BlockItem) {
     return typeof block.properties.sortOrder === "number"
       ? (block.properties.sortOrder as number)
       : 9999;
   }
 
-  // clip / raw 구분
+  // clip / raw 블록 구분
   const clipBlocks = blocks
     .filter((b) => b.type === "clip")
     .sort((a, b) => getSort(a) - getSort(b));
-
   const rawBlocks = blocks
     .filter((b) => b.type !== "clip")
     .sort((a, b) => getSort(a) - getSort(b));
@@ -100,17 +89,21 @@ export default function ClipHome({
   };
   const extendedBlocks = [...rawBlocks, placeholderBlock];
 
-  // DnD sensors
-  const sensors = useSensors(useSensor(PointerSensor));
+  // distance: 5(픽셀) => 5px 이상 마우스 움직여야 드래그 시작
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+  );
 
-  // onDragStart
   const handleDragStart = (event: DragStartEvent) => {
     const draggedId = String(event.active.id);
     const found = blocks.find((b) => b.id === draggedId) || null;
     setActiveBlock(found);
   };
 
-  // onDragOver
   const handleDragOver = (event: DragOverEvent) => {
     const newOverId = event.over?.id ? String(event.over.id) : null;
     setOverId(newOverId);
@@ -124,7 +117,6 @@ export default function ClipHome({
     }
   };
 
-  // onDragEnd
   const handleDragEnd = async (event: DragEndEvent) => {
     setActiveBlock(null);
     setOverId(null);
@@ -140,7 +132,7 @@ export default function ClipHome({
     const draggedBlock = blocks.find((b) => b.id === draggedId);
     if (!draggedBlock) return;
 
-    // (1) clip 블록 → clipBlocks 재정렬
+    // 1) clip 블록을 clipBlocks 내에서 재정렬
     if (draggedBlock.type === "clip") {
       const oldIndex = clipBlocks.findIndex((b) => b.id === draggedId);
       if (oldIndex < 0) return;
@@ -154,39 +146,28 @@ export default function ClipHome({
       return;
     }
 
-    // (2) non-clip(= raw) 블록 → clip or raw
+    // 2) clip이 아닌 블록 -> clip에 드롭 or raw 내 재정렬
     if (draggedBlock.type !== "clip") {
       const isOverClip = clipBlocks.some((cb) => cb.id === overId);
 
       if (isOverClip) {
-        /**
-         * [새 로직] 이미 같은 type의 블록이 등록되어 있다면, 그 블록을 제거하고 이번 드롭 블록으로 교체
-         */
         const targetClip = blocks.find((b) => b.id === overId);
         if (!targetClip) return;
 
-        // targetClip.content -> 실제 block 리스트
         const contentBlockIds = targetClip.content;
-        // 1) 만약 같은 type이 이미 content에 있으면 제거
-        //    ex) draggedBlock.type = "selected_path" 이면 content 중 type="selected_path" 블록 제거
-        //    (주의: contentBlockIds를 map해서 blocks에서 찾아야 type확인 가능)
+        // 이미 동일 type의 블록이 연결되어 있다면 제거 후 교체
         const replacedContent = contentBlockIds.filter((childId) => {
           const childBlock = blocks.find((b) => b.id === childId);
-          if (!childBlock) return true; // 혹은 제거
+          if (!childBlock) return true;
           return childBlock.type !== draggedBlock.type;
         });
 
-        // 2) 새로 드롭된 블록 id를 content에 추가
         if (!replacedContent.includes(draggedId)) {
           replacedContent.push(draggedId);
         }
 
-        // 3) update DB
         await updateBlock(targetClip.id, { content: replacedContent });
-
-        return;
       } else {
-        // raw 블록끼리 재정렬
         const blockArr = rawBlocks;
         const oldIndex = blockArr.findIndex((b) => b.id === draggedId);
         if (oldIndex < 0) return;
@@ -226,7 +207,7 @@ export default function ClipHome({
     }
   };
 
-  // + 버튼 -> 새 블록
+  // + 버튼 -> 새 블록 생성
   const handleAddBlockAtEnd = () => {
     setEditingBlock(null);
     setModalOpen(true);
@@ -234,7 +215,6 @@ export default function ClipHome({
 
   return (
     <>
-      {/* 블록 생성/편집 모달 */}
       <BlockCreateModal
         open={modalOpen}
         onClose={() => {
@@ -253,7 +233,6 @@ export default function ClipHome({
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        {/* 상단바 */}
         <div className="flex items-center justify-between mb-4">
           {!isSidebarOpen && (
             <Button variant="ghost" onClick={onOpenSidebar}>
@@ -272,7 +251,7 @@ export default function ClipHome({
           </Button>
         </div>
 
-        {/* clip 블록들 */}
+        {/** clip 블록들 */}
         <SortableContext
           items={clipBlocks.map((b) => b.id)}
           strategy={rectSortingStrategy}
@@ -294,7 +273,7 @@ export default function ClipHome({
         <hr className="my-4" />
         <h2 className="font-bold mb-2">{t("BLOCKS")}</h2>
 
-        {/* raw 블록들 + placeholder */}
+        {/** clip 이 아닌 나머지 블록 + placeholder */}
         <SortableContext
           items={extendedBlocks.map((b) => b.id)}
           strategy={rectSortingStrategy}
