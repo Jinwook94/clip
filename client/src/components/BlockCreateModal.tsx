@@ -67,6 +67,9 @@ export default function BlockCreateModal({
     }
   }, [editingBlock, defaultType]);
 
+  // 편집 모달에서 clip 블록은 수정 불가능하므로 블록 타입 선택 영역을 숨깁니다.
+  const disableTypeSelection = editingBlock?.type === "clip";
+
   // localEditingBlock의 content에 포함된 블록들을 connectedBlocks로 계산
   const connectedBlocks = localEditingBlock
     ? blocks.filter((b) => localEditingBlock.content.includes(b.id))
@@ -181,6 +184,7 @@ export default function BlockCreateModal({
           onChange={(newType, newProps) => {
             setFormData({ type: newType, properties: newProps });
           }}
+          disableTypeSelection={disableTypeSelection}
         />
 
         {formData.type === "clip" && localEditingBlock && (

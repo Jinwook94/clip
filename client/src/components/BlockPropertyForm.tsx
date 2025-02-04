@@ -1,3 +1,5 @@
+// client/src/components/BlockPropertyForm.tsx
+
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
@@ -16,6 +18,8 @@ interface BlockPropertyFormProps {
   blockType: string;
   properties: Record<string, unknown>;
   onChange: (newType: string, newProps: Record<string, unknown>) => void;
+  // 추가: block 타입 선택 영역을 숨길지 여부 (clip 타입의 경우 수정 불가)
+  disableTypeSelection?: boolean;
 }
 
 // 경로를 세그먼트(depth) 기준으로 단축하여 표시하는 함수
@@ -45,6 +49,7 @@ export default function BlockPropertyForm({
   blockType,
   properties,
   onChange,
+  disableTypeSelection = false,
 }: BlockPropertyFormProps) {
   const { t } = useTranslation();
   const [localType, setLocalType] = useState(blockType);
@@ -93,19 +98,21 @@ export default function BlockPropertyForm({
 
   return (
     <div className="space-y-2">
-      {/* 블록 타입 선택 */}
-      <div>
-        <label className="block font-semibold mb-1">{t("BLOCK_TYPE")}:</label>
-        <select
-          className="border p-1 w-full"
-          value={localType}
-          onChange={handleTypeChange}
-        >
-          <option value="clip">clip</option>
-          <option value="action">action</option>
-          <option value="file_path">file path</option>
-        </select>
-      </div>
+      {/* 블록 타입 선택: disableTypeSelection가 true이면 숨김 */}
+      {!disableTypeSelection && (
+        <div>
+          <label className="block font-semibold mb-1">{t("BLOCK_TYPE")}:</label>
+          <select
+            className="border p-1 w-full"
+            value={localType}
+            onChange={handleTypeChange}
+          >
+            <option value="clip">clip</option>
+            <option value="action">action</option>
+            <option value="file_path">file path</option>
+          </select>
+        </div>
+      )}
 
       {/*
          수정: 사용자에게 color를 커스터마이징할 수 있는 기능이 더 이상 필요 없으므로,
