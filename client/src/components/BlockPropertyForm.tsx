@@ -1,27 +1,45 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import FileSelectionModal from "./FileSelectionModal";
 import { toast } from "@/hooks/use-toast";
-import { IconX } from "@tabler/icons-react";
+import { IconX, IconCode } from "@tabler/icons-react";
 import { useBlockStore } from "@/store/blockStore";
 
-// 블록 타입과 속성을 저장할 폼 데이터 인터페이스
+
+/**
+ * 블록 타입과 속성을 저장할 폼 데이터 인터페이스
+ */
 export interface BlockFormData {
   type: string;
   properties: Record<string, unknown>;
 }
 
-// 컴포넌트의 props 인터페이스
+/**
+ * 컴포넌트의 props 인터페이스
+ */
 interface BlockPropertyFormProps {
   blockType: string;
   properties: Record<string, unknown>;
   onChange: (newType: string, newProps: Record<string, unknown>) => void;
-  // 추가: block 타입 선택 영역을 숨길지 여부 (clip 타입의 경우 수정 불가)
+  /**
+   * clip 블록인 경우 등, block 타입 선택 영역을 숨길지 여부
+   */
   disableTypeSelection?: boolean;
 }
 
-// 경로를 세그먼트(depth) 기준으로 단축하여 표시하는 함수
+/**
+ * 경로를 세그먼트(depth) 기준으로 단축하여 표시하는 함수
+ */
 function shortenPath(pathStr: string, maxDepth: number = 5): string {
   const segments = pathStr.split(/[\\/]+/);
   if (segments.length <= maxDepth) return pathStr;
@@ -32,7 +50,9 @@ function shortenPath(pathStr: string, maxDepth: number = 5): string {
   return `${front}/.../${back}`;
 }
 
-// rootPath 기준 상대경로를 계산하는 함수
+/**
+ * rootPath 기준 상대경로를 계산하는 함수
+ */
 function relativePath(fullPath: string, rootPath: string): string {
   if (fullPath.startsWith(rootPath)) {
     let rel = fullPath.substring(rootPath.length);
@@ -45,44 +65,70 @@ function relativePath(fullPath: string, rootPath: string): string {
 }
 
 export default function BlockPropertyForm({
-                                            blockType,
-                                            properties,
-                                            onChange,
-                                            disableTypeSelection = false,
-                                          }: BlockPropertyFormProps) {
+  blockType,
+  properties,
+  onChange,
+  disableTypeSelection = false,
+}: BlockPropertyFormProps) {
   const { t } = useTranslation();
+  const allBlocks = useBlockStore((state) => state.blocks);
+
+  // (A) 로컬 스테이트
   const [localType, setLocalType] = useState(blockType);
   const [localProps, setLocalProps] = useState({ ...properties });
-  const [fileModalOpen, setFileModalOpen] = useState(false);
-  // clip 블록에서 사용할 Shortcut 상태 (문자열)
+
+  // (B) clip 블록에서 shortcut 상태
   const [shortcut, setShortcut] = useState<string>(
     (localProps.shortcut as string) || "",
   );
 
+  // (C) file_path 블록에서 파일 선택 모달
+  const [fileModalOpen, setFileModalOpen] = useState(false);
+
+  // (D) action 블록의 Code 편집 시트 열림/닫힘 상태
+  const [codeSheetOpen, setCodeSheetOpen] = useState(false);
+
+  // (E) action 블록의 코드 임시 저장
+  const [tempCode, setTempCode] = useState<string>(
+    (localProps.code as string) ?? "",
+  );
+
+  /**
+   * props 바뀔 때마다 로컬 스테이트 초기화
+   */
   useEffect(() => {
     setLocalType(blockType);
     setLocalProps({ ...properties });
-    // clip 블록일 경우 properties에 shortcut 값이 있다면 로드
+
     if (blockType === "clip" && properties.shortcut) {
       setShortcut(properties.shortcut as string);
     }
+    if (blockType === "action" && properties.code) {
+      setTempCode(properties.code as string);
+    }
   }, [blockType, properties]);
 
-  // 타입 변경 핸들러
+  /**
+   * 블록 타입 변경 핸들러
+   */
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newType = e.target.value;
     setLocalType(newType);
     onChange(newType, localProps);
   };
 
-  // 속성 변경 핸들러
+  /**
+   * 속성 변경 핸들러
+   */
   const updateProp = (key: string, value: unknown) => {
     const merged = { ...localProps, [key]: value };
     setLocalProps(merged);
     onChange(localType, merged);
   };
 
-  // Shortcut 입력 시 키 조합을 기록하는 핸들러
+  /**
+   * Shortcut 입력 시 키 조합을 기록
+   */
   const handleShortcutKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     e.preventDefault(); // 기본 동작 방지
     let combo = "";
@@ -95,15 +141,17 @@ export default function BlockPropertyForm({
     updateProp("shortcut", combo);
   };
 
-  // action 타입 블록의 경우, 현재 Clip 데스크탑에 존재하는 모든 block type(clip, action 제외)를 옵션으로 사용
-  const allBlocks = useBlockStore((state) => state.blocks);
+  /**
+   * action 타입 블록의 경우, 사용 가능한 블록 타입 목록
+   * (예: clip, action 제외한 나머지 type을 requiredBlockTypes로 설정 가능)
+   */
   const availableBlockTypes = Array.from(
     new Set(allBlocks.map((b) => b.type)),
   ).filter((type) => type !== "clip" && type !== "action");
 
   return (
     <div className="space-y-2">
-      {/* 블록 타입 선택: disableTypeSelection가 true이면 숨김 */}
+      {/* (1) 블록 타입 선택. 단, disableTypeSelection=true일 땐 숨김 */}
       {!disableTypeSelection && (
         <div>
           <label className="block font-semibold mb-1">{t("BLOCK_TYPE")}:</label>
@@ -119,12 +167,7 @@ export default function BlockPropertyForm({
         </div>
       )}
 
-      {/*
-         수정: 사용자에게 color를 커스터마이징할 수 있는 기능이 더 이상 필요 없으므로,
-         Color 속성 관련 입력 필드를 삭제하였습니다.
-      */}
-
-      {/* Name 속성 */}
+      {/* (2) Name 속성 */}
       <div>
         <label className="block font-semibold mb-1">{t("NAME")}:</label>
         <Input
@@ -133,7 +176,7 @@ export default function BlockPropertyForm({
         />
       </div>
 
-      {/* clip 블록인 경우 Shortcut 입력란 표시 */}
+      {/* (3) clip 블록: Shortcut 입력 */}
       {localType === "clip" && (
         <div className="space-y-2">
           <div>
@@ -143,7 +186,6 @@ export default function BlockPropertyForm({
               placeholder="Press shortcut keys"
               value={shortcut}
               onKeyDown={handleShortcutKeyDown}
-              // onChange 핸들러를 빈 함수로 설정하여 경고 해소
               onChange={() => {}}
               className="border p-1 w-full"
             />
@@ -151,9 +193,10 @@ export default function BlockPropertyForm({
         </div>
       )}
 
-      {/* action 블록인 경우 REQUIRED_BLOCKS 및 Code 입력란 표시 */}
+      {/* (4) action 블록: REQUIRED_BLOCKS + Code 편집 버튼 + 우측 Sheet */}
       {localType === "action" && (
         <div className="space-y-2">
+          {/* (4-1) REQUIRED_BLOCKS */}
           <div>
             <label className="block font-semibold mb-1">
               {t("REQUIRED_BLOCKS")}
@@ -183,22 +226,74 @@ export default function BlockPropertyForm({
               (Hold Ctrl or Shift to select multiple)
             </small>
           </div>
+
+          {/* (4-2) Code는 별도 Sheet에서 편집 */}
           <div>
             <label className="block font-semibold mb-1">
               {t("CODE_OPTIONAL")}
             </label>
-            <textarea
-              className="border w-full h-24 p-2"
-              value={(localProps.code as string) ?? ""}
-              onChange={(e) => updateProp("code", e.target.value)}
-            />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                className="flex items-center gap-1"
+                onClick={() => setCodeSheetOpen(true)}
+              >
+                <IconCode className="w-4 h-4" />
+                <span>Edit Code</span>
+              </Button>
+              {/* 현재 코드 상태를 간단히 미리보기(길이)로 표시 */}
+              <span className="text-xs text-gray-500">
+                {tempCode.length} chars
+              </span>
+            </div>
+
+            {/* Sheet(우측 슬라이드) 영역 */}
+            <Sheet open={codeSheetOpen} onOpenChange={setCodeSheetOpen}>
+              {/* SheetTrigger를 여기선 안 씀. 수동으로 onOpenChange */}
+              <SheetContent side="right" className="overflow-auto">
+                <SheetHeader>
+                  <SheetTitle>Action Code</SheetTitle>
+                  <SheetDescription>
+                    {t("CODE_OPTIONAL")} - {t("EDIT_BLOCK")}
+                  </SheetDescription>
+                </SheetHeader>
+
+                <div className="mt-4 flex-1">
+                  <textarea
+                    className="w-full h-[70vh] border p-2 text-sm font-jetbrains"
+                    value={tempCode}
+                    onChange={(e) => setTempCode(e.target.value)}
+                  />
+                </div>
+
+                <SheetFooter className="mt-4">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setCodeSheetOpen(false)}
+                  >
+                    {t("CANCEL")}
+                  </Button>
+                  <Button
+                    variant="default"
+                    onClick={() => {
+                      // Sheet를 닫으면서 최종 코드 반영
+                      updateProp("code", tempCode);
+                      setCodeSheetOpen(false);
+                    }}
+                  >
+                    {t("UPDATE")}
+                  </Button>
+                </SheetFooter>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       )}
 
-      {/* file_path 블록인 경우 파일 선택 UI 표시 */}
+      {/* (5) file_path 블록: 파일(디렉토리) 선택 UI */}
       {localType === "file_path" && (
         <div className="space-y-2">
+          {/* (5-1) Root Path 선택 */}
           <div>
             <label className="block font-semibold mb-1">Root Path:</label>
             <div className="flex items-center">
@@ -234,6 +329,8 @@ export default function BlockPropertyForm({
                 )}
             </div>
           </div>
+
+          {/* (5-2) File Paths 선택 */}
           <div>
             <label className="block font-semibold mb-1">File Paths:</label>
             <button
@@ -249,6 +346,8 @@ export default function BlockPropertyForm({
               Select Files/Directories
             </button>
           </div>
+
+          {/* (5-3) 선택된 경로들 목록 */}
           <div className="flex flex-wrap gap-2">
             {Array.isArray(localProps.paths) && localProps.paths.length > 0 ? (
               (localProps.paths as string[]).map((p) => (
@@ -278,6 +377,8 @@ export default function BlockPropertyForm({
               <span className="text-sm">All</span>
             )}
           </div>
+
+          {/* (5-4) FileSelectionModal */}
           {fileModalOpen && (
             <FileSelectionModal
               open={fileModalOpen}
