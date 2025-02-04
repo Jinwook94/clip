@@ -1,6 +1,6 @@
-/** clip 타입 블록에서는 별도 properties 가 거의 없다고 가정 */
 export interface ClipBlockProps {
-  name?: string; // 예: "MyClip"
+  name?: string;
+  shortcut?: string;
 }
 
 export interface ActionBlockProps {

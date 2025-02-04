@@ -7,9 +7,13 @@ import { createTray } from "./tray";
 import { update } from "./update";
 import { initAllIpc } from "./ipc";
 import { initAppRepositories } from "./di";
+import { registerGlobalShortcuts } from "./globalShortcuts";
 
 let win: BrowserWindow | null = null;
 let isQuitting = false;
+
+// 전역에서 메인 윈도우에 접근할 수 있도록 변수에 할당
+export let mainWindow: BrowserWindow | null = null;
 
 app.name = "Clip";
 
@@ -43,7 +47,7 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 async function createWindow() {
-  // DB 초기화 + IPC 등록
+  // DB 초기화 및 IPC 등록
   const repos = initAppRepositories();
   initAllIpc();
 
@@ -53,13 +57,13 @@ async function createWindow() {
   const { width = 900, height = 680 } = store.get("windowBounds") || {};
   const isMac = process.platform === "darwin";
 
-  // Windows는 skipTaskbar: true (작업표시줄 숨김), 맥은 Dock 표시를 동적으로
+  // Windows: skipTaskbar true, Mac: Dock 제어
   win = new BrowserWindow({
     title: "Clip",
     icon: path.join(process.env.VITE_PUBLIC, "favicon.ico"),
     width,
     height,
-    skipTaskbar: process.platform !== "darwin", // Mac이면 false
+    skipTaskbar: process.platform !== "darwin",
     frame: isMac ? true : false,
     titleBarStyle: isMac ? "hiddenInset" : undefined,
     trafficLightPosition: isMac ? { x: 20, y: 16 } : undefined,
@@ -68,6 +72,9 @@ async function createWindow() {
     },
   });
 
+  // 메인 윈도우 전역 변수에 저장 (global.mainWindow)
+  mainWindow = win;
+
   // 창 크기 변경 시 저장
   win.on("resize", () => {
     if (!win) return;
@@ -75,32 +82,25 @@ async function createWindow() {
     store.set("windowBounds", { width, height });
   });
 
-  /**
-   * Mac 전용: show/hide 이벤트에 따라 Dock show/hide
-   *  - show()되면 Dock도 표시
-   *  - hide()되면 Dock 숨김
-   */
+  // Mac 전용: 창 show/hide 시 Dock 제어
   if (isMac) {
-    // 창이 실제 보이기 시작할 때
     win.on("show", () => {
       app.dock.show();
     });
-    // 창이 hide될 때
     win.on("hide", () => {
       app.dock.hide();
     });
   }
 
-  // 닫기 시도 -> 실제로는 숨김
+  // 창 닫기 시 실제로는 숨김 처리
   win.on("close", (e) => {
     if (!isQuitting) {
       e.preventDefault();
       win?.hide();
-      // hide() 이벤트에서 Dock도 같이 hide됨
     }
   });
 
-  // 개발/프로덕션 로드
+  // 개발/프로덕션 환경에 따라 페이지 로드
   if (isDev) {
     await win.loadURL(process.env.VITE_DEV_SERVER_URL!);
     win.webContents.openDevTools();
@@ -112,26 +112,27 @@ async function createWindow() {
     win?.webContents.send("main-process-message", new Date().toLocaleString());
   });
 
-  // 외부링크 -> 기본 브라우저
+  // 외부 링크는 기본 브라우저로 열기
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith("https:")) shell.openExternal(url);
     return { action: "deny" };
   });
 
-  // Tray 아이콘 생성
+  // Tray 아이콘 생성 및 업데이트 체크
   createTray(win);
-  // 업데이트 체크 리스너
   update(win);
+
+  // 글로벌 단축키 등록
+  await registerGlobalShortcuts();
 }
 
-// app 종료 전 처리
+// 앱 종료 전 처리 (앱 숨기기)
 app.on("before-quit", (e) => {
   if (!isQuitting) {
     e.preventDefault();
     if (win) {
       win.hide();
       if (process.platform === "darwin") {
-        // hide
         app.dock.hide();
       }
     }
@@ -141,7 +142,7 @@ app.on("before-quit", (e) => {
 app.whenReady().then(() => {
   createWindow();
 
-  // 전역 단축키 예시
+  // (옵션) 기존 예제 단축키 – 필요 없으면 주석 처리 가능
   globalShortcut.register("CommandOrControl+Shift+X", () => {
     console.log("Global Shortcut Triggered!");
     if (win) {
@@ -150,12 +151,12 @@ app.whenReady().then(() => {
   });
 });
 
-// 창이 모두 닫혀도(실제로는 hide) 앱 종료 안 함
+// 창이 모두 닫혀도 앱 종료하지 않음
 app.on("window-all-closed", () => {
   win = null;
 });
 
-// 두 번째 인스턴스가 실행될 때 -> 기존 창 복원
+// 두 번째 인스턴스 실행 시 기존 창 복원
 app.on("second-instance", () => {
   if (win) {
     if (win.isMinimized()) win.restore();
@@ -163,16 +164,18 @@ app.on("second-instance", () => {
   }
 });
 
-// 맥에서 Dock 아이콘 클릭 -> 창 show
+// Mac에서 Dock 아이콘 클릭 시 창 보이기 및 단축키 재등록
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   } else {
     win?.show();
+    // 앱 활성화 시 단축키 재등록 (혹은 필요시 업데이트)
+    registerGlobalShortcuts().catch(console.error);
   }
 });
 
-// Tray 메뉴 "Quit"에서만 isQuitting=true -> 진짜 종료 허용
+// Tray 메뉴 "Quit"에서만 isQuitting를 true로 설정하여 앱 종료 허용
 export function setIsQuitting(val: boolean) {
   isQuitting = val;
 }

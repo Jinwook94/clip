@@ -51,10 +51,25 @@ export default function BlockPropertyForm({
   const [localType, setLocalType] = useState(blockType);
   const [localProps, setLocalProps] = useState({ ...properties });
   const [fileModalOpen, setFileModalOpen] = useState(false);
+  // clip 블록에서 사용할 Shortcut 상태 (문자열)
+  const [shortcut, setShortcut] = useState<string>(
+    (localProps.shortcut as string) || "",
+  );
+
+  // action 블록의 REQUIRED_BLOCKS 관련 블록 타입 목록
+  const DEFAULT_REQUIRED_BLOCK_TYPES = ["file_path"];
+  const blocks = useBlockStore((state) => state.blocks);
+  const availableBlockTypes = Array.from(
+    new Set([...blocks.map((b) => b.type), ...DEFAULT_REQUIRED_BLOCK_TYPES]),
+  ).filter((type) => type !== "clip" && type !== "action");
 
   useEffect(() => {
     setLocalType(blockType);
     setLocalProps({ ...properties });
+    // clip 블록일 경우 properties에 shortcut 값이 있다면 로드
+    if (blockType === "clip" && properties.shortcut) {
+      setShortcut(properties.shortcut as string);
+    }
   }, [blockType, properties]);
 
   // 타입 변경 핸들러
@@ -69,6 +84,19 @@ export default function BlockPropertyForm({
     const merged = { ...localProps, [key]: value };
     setLocalProps(merged);
     onChange(localType, merged);
+  };
+
+  // Shortcut 입력 시 키 조합을 기록하는 핸들러
+  const handleShortcutKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    e.preventDefault(); // 기본 동작 방지
+    let combo = "";
+    if (e.ctrlKey) combo += "Ctrl+";
+    if (e.shiftKey) combo += "Shift+";
+    if (e.altKey) combo += "Alt+";
+    if (e.metaKey) combo += "Cmd+";
+    combo += e.key.toUpperCase();
+    setShortcut(combo);
+    updateProp("shortcut", combo);
   };
 
   return (
@@ -107,6 +135,24 @@ export default function BlockPropertyForm({
         />
       </div>
 
+      {/* clip 블록인 경우 Shortcut 입력란 표시 */}
+      {localType === "clip" && (
+        <div className="space-y-2">
+          <div>
+            <label className="block font-semibold mb-1">Shortcut:</label>
+            <input
+              type="text"
+              placeholder="Press shortcut keys"
+              value={shortcut}
+              onKeyDown={handleShortcutKeyDown}
+              className="border p-1 w-full"
+            />
+            <small className="text-gray-500">(예: Ctrl+Shift+K)</small>
+          </div>
+        </div>
+      )}
+
+      {/* action 블록인 경우 REQUIRED_BLOCKS 및 Code 입력란 표시 */}
       {localType === "action" && (
         <div className="space-y-2">
           <div>
