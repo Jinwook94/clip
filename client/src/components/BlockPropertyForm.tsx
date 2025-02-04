@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import FileSelectionModal from "./FileSelectionModal";
 import { toast } from "@/hooks/use-toast";
 import { IconX } from "@tabler/icons-react";
-import { useBlockStore } from "@/store/blockStore";
 
 // 블록 타입과 속성을 저장할 폼 데이터 인터페이스
 export interface BlockFormData {
@@ -55,13 +54,6 @@ export default function BlockPropertyForm({
   const [shortcut, setShortcut] = useState<string>(
     (localProps.shortcut as string) || "",
   );
-
-  // action 블록의 REQUIRED_BLOCKS 관련 블록 타입 목록
-  const DEFAULT_REQUIRED_BLOCK_TYPES = ["file_path"];
-  const blocks = useBlockStore((state) => state.blocks);
-  const availableBlockTypes = Array.from(
-    new Set([...blocks.map((b) => b.type), ...DEFAULT_REQUIRED_BLOCK_TYPES]),
-  ).filter((type) => type !== "clip" && type !== "action");
 
   useEffect(() => {
     setLocalType(blockType);
@@ -115,16 +107,10 @@ export default function BlockPropertyForm({
         </select>
       </div>
 
-      {/* Color 속성 */}
-      <div>
-        <label className="block font-semibold mb-1">{t("COLOR")}:</label>
-        <input
-          type="color"
-          className="w-14 h-7"
-          value={(localProps.color as string) ?? "#ffffff"}
-          onChange={(e) => updateProp("color", e.target.value)}
-        />
-      </div>
+      {/*
+         수정: 사용자에게 color를 커스터마이징할 수 있는 기능이 더 이상 필요 없으므로,
+         Color 속성 관련 입력 필드를 삭제하였습니다.
+      */}
 
       {/* Name 속성 */}
       <div>
@@ -147,7 +133,6 @@ export default function BlockPropertyForm({
               onKeyDown={handleShortcutKeyDown}
               className="border p-1 w-full"
             />
-            <small className="text-gray-500">(예: Ctrl+Shift+K)</small>
           </div>
         </div>
       )}
@@ -174,11 +159,7 @@ export default function BlockPropertyForm({
                 updateProp("requiredBlockTypes", selected);
               }}
             >
-              {availableBlockTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
+              {/* availableBlockTypes 처리 */}
             </select>
             <small className="text-gray-500">
               (Hold Ctrl or Shift to select multiple)

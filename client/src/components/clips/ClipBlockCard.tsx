@@ -44,14 +44,12 @@ export default function ClipBlockCard({
     isDragging,
   } = useSortable({ id: block.id });
 
-  // 항상 pointer 커서를 사용하도록 설정 (드래그 중에는 grabbing)
+  // 수정: block.properties.color 관련 커스터마이징 기능 삭제하고, 기본 배경색 "#ffffff" 사용
   const style: React.CSSProperties = {
     transform: transform ? CSS.Transform.toString(transform) : undefined,
     transition,
     cursor: isDragging ? "grabbing" : "pointer",
-    backgroundColor: isOver
-      ? "#e2e8f0"
-      : (block.properties.color as string) || "#ffffff",
+    backgroundColor: isOver ? "#e2e8f0" : "#ffffff",
   };
 
   const allBlocks = useBlockStore((s) => s.blocks);

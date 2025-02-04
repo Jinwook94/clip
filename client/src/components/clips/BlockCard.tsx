@@ -31,11 +31,11 @@ export default function BlockCard({
     isDragging,
   } = useSortable({ id: block.id });
 
-  // 항상 마우스 오버 시 pointer 커서가 나타나도록 "pointer"로 설정
+  // 수정: block.properties.color 관련 커스터마이징 기능 삭제하고, 기본 배경색 "#eee" 사용
   const style: React.CSSProperties = {
     transform: transform ? CSS.Transform.toString(transform) : undefined,
     transition,
-    backgroundColor: (block.properties.color as string) ?? "#eee",
+    backgroundColor: "#eee",
     cursor: isDragging ? "grabbing" : "pointer",
   };
 
