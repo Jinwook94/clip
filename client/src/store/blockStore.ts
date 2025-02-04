@@ -3,7 +3,7 @@ import { nanoid } from "nanoid";
 
 export interface BlockItem {
   id: string;
-  type: string; // "clip" | "project_root" | "selected_path" | "action" 등
+  type: string;
   properties: Record<string, unknown>;
   content: string[];
   parent: string | null;

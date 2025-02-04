@@ -1,6 +1,5 @@
 // client/src/components/BlockCreateModal.tsx
-
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useBlockStore } from "@/store/blockStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +39,6 @@ export default function BlockCreateModal({
   const updateBlock = useBlockStore((s) => s.updateBlock);
   const { blocks } = useBlockStore();
 
-  // 편집 모드에서 사용하기 위해 editingBlock의 복사본을 로컬 state로 관리
   const [localEditingBlock, setLocalEditingBlock] = useState<BlockItem | null>(
     editingBlock || null,
   );
@@ -48,7 +46,6 @@ export default function BlockCreateModal({
     setLocalEditingBlock(editingBlock || null);
   }, [editingBlock]);
 
-  // 폼 데이터 state (블록 타입과 속성)
   const [formData, setFormData] = useState<BlockFormData>({
     type: "clip",
     properties: {},
@@ -67,22 +64,16 @@ export default function BlockCreateModal({
     }
   }, [editingBlock, defaultType]);
 
-  // 편집 모달에서 clip 블록은 수정 불가능하므로 블록 타입 선택 영역을 숨깁니다.
   const disableTypeSelection = editingBlock?.type === "clip";
 
-  // localEditingBlock의 content에 포함된 블록들을 connectedBlocks로 계산
   const connectedBlocks = localEditingBlock
     ? blocks.filter((b) => localEditingBlock.content.includes(b.id))
     : [];
 
-  // 연결된 블록 중 type이 "action"인 블록 (상단에 표시)
   const actionBlockItem = connectedBlocks.find((b) => b.type === "action");
-  // 그 외의 연결된 블록들은 action 블록을 제외한 나머지
   const otherBlocks = connectedBlocks.filter((b) => b.type !== "action");
 
-  // "clip" 블록인 경우, required block 타입들을 계산 – 이제 더 이상 추가 타입은 사용하지 않음
   const requiredTypes: string[] = [];
-  // 누락된(아직 연결되지 않은) required 블록들을 empty slot으로 표시
   const missingBlocks: ExtendedBlockItem[] = requiredTypes.map((rt) => ({
     id: `empty-${rt}`,
     type: rt,
@@ -92,16 +83,12 @@ export default function BlockCreateModal({
     parent: null,
   }));
 
-  // 최종적으로 표시할 연결된 블록 목록: action 블록, 기타 연결된 블록, 누락된 빈 슬롯
-  const finalConnectedBlocks = useMemo(() => {
-    return [
-      ...(actionBlockItem ? [actionBlockItem as ExtendedBlockItem] : []),
-      ...otherBlocks.map((b) => b as ExtendedBlockItem),
-      ...missingBlocks,
-    ];
-  }, [actionBlockItem, otherBlocks, missingBlocks]);
+  const finalConnectedBlocks = [
+    ...(actionBlockItem ? [actionBlockItem as ExtendedBlockItem] : []),
+    ...otherBlocks.map((b) => b as ExtendedBlockItem),
+    ...missingBlocks,
+  ];
 
-  // 로컬 연결 블록 state (애니메이션 효과 적용)
   const [localConnectedBlocks, setLocalConnectedBlocks] =
     useState<ExtendedBlockItem[]>(finalConnectedBlocks);
   useEffect(() => {
@@ -112,7 +99,6 @@ export default function BlockCreateModal({
     }
   }, [finalConnectedBlocks, localConnectedBlocks]);
 
-  // 편집 모드일 때, 원래의 값과 현재 값의 차이를 비교하여 Update 버튼 활성화 여부 결정
   const hasChanges = editingBlock
     ? editingBlock.type !== formData.type ||
       JSON.stringify(editingBlock.properties) !==
@@ -121,7 +107,6 @@ export default function BlockCreateModal({
         JSON.stringify(localEditingBlock?.content || editingBlock.content)
     : true;
 
-  // 폼 제출 시: 편집 모드이면 업데이트(연결된 블록 포함), 아니면 새 블록 생성
   const handleSubmit = async () => {
     if (editingBlock) {
       await updateBlock(editingBlock.id, {
@@ -139,35 +124,23 @@ export default function BlockCreateModal({
     onClose();
   };
 
-  const getBlockIcon = (type: string, blockColor?: string) => {
-    if (type === "action") {
-      return (
-        <IconTerminal2 className="w-4 h-4" style={{ color: blockColor }} />
-      );
-    }
-    // 다른 타입은 기본 아이콘 사용
-    return <IconFile className="w-4 h-4" />;
-  };
+  // availableBlockTypes: DB에서 현재 생성된 모든 block type들을 조회
+  const [availableBlockTypes, setAvailableBlockTypes] = useState<any[]>([]);
+  useEffect(() => {
+    window.ipcRenderer.invoke("blockTypes-load").then((types: any[]) => {
+      setAvailableBlockTypes(types);
+    });
+  }, []);
 
-  const disconnectBlock = (blockId: string, blockType: string) => {
-    if (blockType === "action") {
-      const confirmed = window.confirm(
-        "Action 블록은 매우 중요합니다. 정말 해제하시겠습니까?",
-      );
-      if (!confirmed) return;
+  // 기존 선택된 block type definition (필드 렌더링용)
+  const [blockTypeDefinition, setBlockTypeDefinition] = useState<any>(null);
+  useEffect(() => {
+    // availableBlockTypes가 로드되면 선택한 type에 해당하는 정의를 찾아 업데이트
+    if (availableBlockTypes.length > 0) {
+      const btDef = availableBlockTypes.find((bt) => bt.name === formData.type);
+      setBlockTypeDefinition(btDef || null);
     }
-    setLocalConnectedBlocks((prev) =>
-      prev.map((b) => (b.id === blockId ? { ...b, removing: true } : b)),
-    );
-    setTimeout(() => {
-      if (localEditingBlock) {
-        const newContent = localEditingBlock.content.filter(
-          (id) => id !== blockId,
-        );
-        setLocalEditingBlock({ ...localEditingBlock, content: newContent });
-      }
-    }, 300);
-  };
+  }, [formData.type, availableBlockTypes]);
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
@@ -185,6 +158,8 @@ export default function BlockCreateModal({
             setFormData({ type: newType, properties: newProps });
           }}
           disableTypeSelection={disableTypeSelection}
+          blockTypeDefinition={blockTypeDefinition}
+          availableBlockTypes={availableBlockTypes}
         />
 
         {formData.type === "clip" && localEditingBlock && (
@@ -207,11 +182,11 @@ export default function BlockCreateModal({
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    {getBlockIcon(
-                      block.type,
-                      block.type === "action"
-                        ? (block.properties as { color?: string }).color
-                        : undefined,
+                    {/* getBlockIcon 함수는 기존과 동일 */}
+                    {formData.type === "action" ? (
+                      <IconTerminal2 className="w-4 h-4" />
+                    ) : (
+                      <IconFile className="w-4 h-4" />
                     )}
                     <div className="flex flex-col">
                       <div className="text-xs text-gray-500">{block.type}</div>

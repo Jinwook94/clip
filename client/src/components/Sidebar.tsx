@@ -1,3 +1,4 @@
+// client/src/components/Sidebar.tsx
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import {
   IconSearch,
   IconChevronDown,
   IconChevronRight,
+  IconSettings,
 } from "@tabler/icons-react";
 import { useBlockStore } from "@/store/blockStore";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,6 +24,7 @@ interface SidebarProps {
   onCreateNewClip?: () => void;
   onSelectClip?: (clipId: string) => void;
   selectedClipId?: string;
+  onNavigate?: (page: string) => void;
 }
 
 function Sidebar({
@@ -29,17 +32,15 @@ function Sidebar({
   onCreateNewClip,
   onSelectClip,
   selectedClipId,
+  onNavigate,
 }: SidebarProps) {
   const { t } = useTranslation();
 
-  // blockStore에서 blocks
   const blocks = useBlockStore((s) => s.blocks);
 
-  // "clip" 타입 블록 중 "properties.isFavorite"가 true인 것만 필터링한다고 가정
   const clipBlocks = blocks.filter((b) => b.type === "clip");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // 즐겨찾기 필터 (가정: b.properties.isFavorite === true)
   const favoriteClips = clipBlocks.filter(
     (clip) => clip.properties.isFavorite === true,
   );
@@ -55,7 +56,6 @@ function Sidebar({
 
   return (
     <div className="flex flex-col w-64 h-screen bg-[#F9F9F9] text-gray-900 relative">
-      {/* 최상단 Titlebar (맥외 OS용) */}
       <div className="relative h-14 drag-region flex items-center">
         {!isMac && (
           <div className="no-drag-region flex items-center">
@@ -75,7 +75,6 @@ function Sidebar({
         </div>
       </div>
 
-      {/* 검색 영역 */}
       <div className="px-4 py-3">
         <div className="relative">
           <Input
@@ -88,23 +87,37 @@ function Sidebar({
         </div>
       </div>
 
-      {/* 메인 Nav */}
       <div className="px-2 pb-2">
-        <div className="flex items-center p-2 text-gray-600 cursor-pointer hover:bg-[#ECECEC] rounded-md">
+        <div
+          className="flex items-center p-2 text-gray-600 cursor-pointer hover:bg-[#ECECEC] rounded-md"
+          onClick={() => onNavigate && onNavigate("clips")}
+        >
           <IconFile className="w-5 h-5 mr-2" />
           {t("CLIPS_MENU")}
         </div>
-        <div className="flex items-center p-2 text-gray-600 cursor-pointer hover:bg-[#ECECEC] rounded-md">
+        <div
+          className="flex items-center p-2 text-gray-600 cursor-pointer hover:bg-[#ECECEC] rounded-md"
+          onClick={() => onNavigate && onNavigate("actions")}
+        >
           <IconActivity className="w-5 h-5 mr-2" />
           {t("ACTIONS_MENU")}
         </div>
-        <div className="flex items-center p-2 text-gray-600 cursor-pointer hover:bg-[#ECECEC] rounded-md">
+        <div
+          className="flex items-center p-2 text-gray-600 cursor-pointer hover:bg-[#ECECEC] rounded-md"
+          onClick={() => onNavigate && onNavigate("snippets")}
+        >
           <IconTag className="w-5 h-5 mr-2" />
           {t("SNIPPETS_MENU")}
         </div>
+        <div
+          className="flex items-center p-2 text-gray-600 cursor-pointer hover:bg-[#ECECEC] rounded-md"
+          onClick={() => onNavigate && onNavigate("blockTypes")}
+        >
+          <IconSettings className="w-5 h-5 mr-2" />
+          Block Types
+        </div>
       </div>
 
-      {/* Favorites */}
       <div className="px-2 pb-2">
         <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
           {t("FAVORITES_HEADER")}
@@ -114,7 +127,6 @@ function Sidebar({
             <>
               {visibleFavorites.map((clip) => {
                 const isSelected = clip.id === selectedClipId;
-                // clip.properties.name or "No name"
                 const clipName =
                   typeof clip.properties.name === "string"
                     ? clip.properties.name
@@ -124,9 +136,7 @@ function Sidebar({
                   <div
                     key={clip.id}
                     onClick={() => onSelectClip?.(clip.id)}
-                    className={`p-2 mb-1 rounded-md cursor-pointer ${
-                      isSelected ? "bg-gray-300" : "hover:bg-[#ECECEC]"
-                    }`}
+                    className={`p-2 mb-1 rounded-md cursor-pointer ${isSelected ? "bg-gray-300" : "hover:bg-[#ECECEC]"}`}
                   >
                     {clipName}
                   </div>
@@ -160,7 +170,6 @@ function Sidebar({
         </ScrollArea>
       </div>
 
-      {/* Labels (하드코딩 예시) */}
       <div className="px-3 py-2">
         <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">
           {t("LABELS_HEADER")}

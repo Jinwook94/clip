@@ -73,12 +73,6 @@ export default function ClipBlockCard({
     // action block에 설정된 requiredBlockTypes 값 (존재하지 않으면 빈 배열)
     requiredBlockTypes =
       (actionBlock.properties.requiredBlockTypes as string[]) ?? [];
-    // actionType 값 확인 (기본값 "copy")
-    const actionType = (actionBlock.properties.actionType as string) || "copy";
-    // 만약 requiredBlockTypes가 없고, actionType이 "copy"라면 기본값 적용
-    if (requiredBlockTypes.length === 0 && actionType === "copy") {
-      requiredBlockTypes = ["project_root", "selected_path"];
-    }
   }
   // ---------------------------------------------------
 
