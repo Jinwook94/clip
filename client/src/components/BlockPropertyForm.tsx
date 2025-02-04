@@ -131,6 +131,8 @@ export default function BlockPropertyForm({
               placeholder="Press shortcut keys"
               value={shortcut}
               onKeyDown={handleShortcutKeyDown}
+              // onChange 핸들러를 빈 함수로 설정하여 경고 해소
+              onChange={() => {}}
               className="border p-1 w-full"
             />
           </div>

@@ -1,3 +1,5 @@
+// client/src/components/BlockCreateModal.tsx
+
 import React, { useState, useEffect, useMemo } from "react";
 import { useBlockStore } from "@/store/blockStore";
 import { Button } from "@/components/ui/button";
@@ -166,7 +168,7 @@ export default function BlockCreateModal({
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent className="max-w-[400px]">
+      <DialogContent aria-describedby={undefined} className="max-w-[400px]">
         <DialogHeader>
           <DialogTitle>
             {editingBlock ? t("EDIT_BLOCK") : t("CREATE_NEW_BLOCK")}
