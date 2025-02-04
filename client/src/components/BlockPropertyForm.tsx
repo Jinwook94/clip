@@ -1,11 +1,10 @@
-// client/src/components/BlockPropertyForm.tsx
-
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import FileSelectionModal from "./FileSelectionModal";
 import { toast } from "@/hooks/use-toast";
 import { IconX } from "@tabler/icons-react";
+import { useBlockStore } from "@/store/blockStore";
 
 // 블록 타입과 속성을 저장할 폼 데이터 인터페이스
 export interface BlockFormData {
@@ -96,6 +95,12 @@ export default function BlockPropertyForm({
     updateProp("shortcut", combo);
   };
 
+  // action 타입 블록의 경우, 현재 Clip 데스크탑에 존재하는 모든 block type(clip, action 제외)를 옵션으로 사용
+  const allBlocks = useBlockStore((state) => state.blocks);
+  const availableBlockTypes = Array.from(
+    new Set(allBlocks.map((b) => b.type)),
+  ).filter((type) => type !== "clip" && type !== "action");
+
   return (
     <div className="space-y-2">
       {/* 블록 타입 선택: disableTypeSelection가 true이면 숨김 */}
@@ -168,7 +173,11 @@ export default function BlockPropertyForm({
                 updateProp("requiredBlockTypes", selected);
               }}
             >
-              {/* availableBlockTypes 처리 */}
+              {availableBlockTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
             </select>
             <small className="text-gray-500">
               (Hold Ctrl or Shift to select multiple)

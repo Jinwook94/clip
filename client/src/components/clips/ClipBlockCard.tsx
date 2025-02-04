@@ -44,7 +44,6 @@ export default function ClipBlockCard({
     isDragging,
   } = useSortable({ id: block.id });
 
-  // 수정: block.properties.color 관련 커스터마이징 기능 삭제하고, 기본 배경색 "#ffffff" 사용
   const style: React.CSSProperties = {
     transform: transform ? CSS.Transform.toString(transform) : undefined,
     transition,
@@ -58,15 +57,32 @@ export default function ClipBlockCard({
     [allBlocks, block.content],
   );
 
+  // action 블록을 찾음 (childBlocks 중 type이 "action"인 블록)
   const actionBlock = childBlocks.find((b) => b.type === "action");
 
-  const actionBlockName = actionBlock
-    ? typeof actionBlock.properties.name === "string" &&
-      actionBlock.properties.name.trim() !== ""
+  const actionBlockName =
+    actionBlock &&
+    typeof actionBlock.properties.name === "string" &&
+    actionBlock.properties.name.trim() !== ""
       ? actionBlock.properties.name
-      : t("NO_NAME", "No Name")
-    : "";
+      : t("NO_NAME", "No Name");
 
+  // --- 아래 부분 추가: requiredBlockTypes 계산 ---
+  let requiredBlockTypes: string[] = [];
+  if (actionBlock) {
+    // action block에 설정된 requiredBlockTypes 값 (존재하지 않으면 빈 배열)
+    requiredBlockTypes =
+      (actionBlock.properties.requiredBlockTypes as string[]) ?? [];
+    // actionType 값 확인 (기본값 "copy")
+    const actionType = (actionBlock.properties.actionType as string) || "copy";
+    // 만약 requiredBlockTypes가 없고, actionType이 "copy"라면 기본값 적용
+    if (requiredBlockTypes.length === 0 && actionType === "copy") {
+      requiredBlockTypes = ["project_root", "selected_path"];
+    }
+  }
+  // ---------------------------------------------------
+
+  // clip 블록의 이름 처리
   const clipName =
     typeof block.properties.name === "string" &&
     block.properties.name.trim() !== ""
@@ -119,6 +135,50 @@ export default function ClipBlockCard({
               : "Empty action slot"}
           </TooltipContent>
         </Tooltip>
+        {/* requiredBlockTypes 표시 */}
+        {actionBlock && requiredBlockTypes.length > 0 && (
+          <div className="flex items-center gap-1">
+            {requiredBlockTypes.map((rType) => {
+              const found = childBlocks.find((b) => b.type === rType);
+              if (found) {
+                const foundName =
+                  typeof found.properties.name === "string" &&
+                  found.properties.name.trim() !== ""
+                    ? found.properties.name
+                    : t("UNNAMED_BLOCK", "Unnamed Block");
+                return (
+                  <Tooltip key={rType} delayDuration={200}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className="h-8 w-8 rounded bg-blue-100 text-blue-800 text-[10px] flex items-center justify-center cursor-default"
+                        role="button"
+                        tabIndex={0}
+                      >
+                        ✓
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      {`${rType}\n: ${foundName}`}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              } else {
+                return (
+                  <Tooltip key={rType} delayDuration={200}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className="h-8 w-8 rounded bg-gray-100 text-gray-400 text-[10px] flex items-center justify-center cursor-default"
+                        role="button"
+                        tabIndex={0}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">{rType}</TooltipContent>
+                  </Tooltip>
+                );
+              }
+            })}
+          </div>
+        )}
       </div>
     );
   }
@@ -131,12 +191,11 @@ export default function ClipBlockCard({
           style={style}
           {...attributes}
           {...listeners}
-          // 클릭 시 편집 모달 열기
+          className="px-2 py-1 border rounded shadow text-sm relative"
           onClick={(e) => {
             e.stopPropagation();
             handleEdit();
           }}
-          className="px-2 py-1 border rounded shadow text-sm relative"
         >
           <div className="text-sm font-semibold mb-2">{clipName}</div>
           {renderSlotsRow()}
