@@ -2,34 +2,54 @@ import { Database } from "better-sqlite3";
 import { nanoid } from "nanoid";
 import type { AnyBlock } from "../domain/block";
 
+/**
+ * DB에 저장된 blocks 테이블 한 행을 나타내는 인터페이스
+ *  - properties, content 컬럼은 JSON 문자열 형태로 저장되어 있으므로
+ *    실제 사용할 때는 parse가 필요합니다.
+ */
 interface BlockDbRow {
-  id: string;
-  type: string;
-  properties: string;
-  content: string;
+  id: string; // PRIMARY KEY (TEXT)
+  type: string; // "clip" | "action" | ...
+  properties: string; // JSON string
+  content: string; // JSON string of string[]
   parent: string | null;
   created_at?: string;
   updated_at?: string;
 }
 
+/**
+ * BlockSqliteRepository
+ *  - Notion 유사 blocks 테이블을 다루는 저장소 예시
+ */
 export class BlockSqliteRepository {
   constructor(private db: Database) {}
 
+  /**
+   * 모든 블록을 조회하여 AnyBlock[] 형태로 반환
+   */
   async findAll(): Promise<AnyBlock[]> {
     const rows = this.db
       .prepare("SELECT * FROM blocks ORDER BY created_at ASC")
-      .all() as unknown[];
-    return rows.map((row) => this.rowToBlock(row as BlockDbRow));
+      .all();
+
+    // rowToBlock에서 type에 따라 properties를 parse
+    return rows.map((r) => this.rowToBlock(r));
   }
 
+  /**
+   * 특정 ID의 블록을 찾아 반환
+   */
   async findById(id: string): Promise<AnyBlock | null> {
-    const row = this.db
-      .prepare("SELECT * FROM blocks WHERE id=?")
-      .get(id) as unknown;
+    const row = this.db.prepare("SELECT * FROM blocks WHERE id=?").get(id);
     if (!row) return null;
-    return this.rowToBlock(row as BlockDbRow);
+    return this.rowToBlock(row);
   }
 
+  /**
+   * 블록 생성
+   *  - partial AnyBlock을 받아, DB에 새 레코드로 삽입
+   *  - 반환값은 새로 생성된 블록의 ID
+   */
   async create(block: Partial<AnyBlock>): Promise<string> {
     const now = new Date().toISOString();
     const newId = block.id ?? nanoid();
@@ -39,9 +59,9 @@ export class BlockSqliteRepository {
     this.db
       .prepare(
         `
-          INSERT INTO blocks (id, type, properties, content, parent, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-      `,
+            INSERT INTO blocks (id, type, properties, content, parent, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `,
       )
       .run(
         newId,
@@ -55,6 +75,10 @@ export class BlockSqliteRepository {
     return newId;
   }
 
+  /**
+   * 블록 업데이트
+   *  - 이미 존재하는 블록을 덮어씀
+   */
   async update(block: AnyBlock): Promise<void> {
     const now = new Date().toISOString();
     const propsJson = JSON.stringify(block.properties);
@@ -62,14 +86,15 @@ export class BlockSqliteRepository {
     this.db
       .prepare(
         `
-          UPDATE blocks
-          SET type = ?,
-              properties = ?,
-              content = ?,
-              parent = ?,
-              updated_at = ?
-          WHERE id = ?
-      `,
+            UPDATE blocks
+            SET
+                type = ?,
+                properties = ?,
+                content = ?,
+                parent = ?,
+                updated_at = ?
+            WHERE id = ?
+        `,
       )
       .run(
         block.type,
@@ -81,26 +106,46 @@ export class BlockSqliteRepository {
       );
   }
 
+  /**
+   * 블록 삭제
+   *  - 자식 블록을 어떻게 처리할지는 설계에 따라 달라질 수 있음
+   *  - 여기서는 해당 블록만 삭제
+   */
   async deleteById(id: string): Promise<void> {
     this.db
       .prepare(
         `
-          DELETE FROM blocks
-          WHERE id = ?
-      `,
+            DELETE FROM blocks
+            WHERE id = ?
+        `,
       )
       .run(id);
   }
 
-  private rowToBlock(row: BlockDbRow): AnyBlock {
-    return {
-      id: row.id,
-      type: row.type,
-      properties: JSON.parse(row.properties || "{}"),
-      content: JSON.parse(row.content || "[]"),
+  /**
+   * DB에서 읽은 한 줄(row)을 AnyBlock 형태로 변환
+   *  - type별로 properties를 적절히 분기하여 반환
+   */
+  private rowToBlock(raw: unknown): AnyBlock {
+    const row = raw as BlockDbRow;
+    const commonFields = {
+      id: String(row.id),
+      content: JSON.parse(row.content || "[]") as string[],
       parent: row.parent || null,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+      createdAt: row.created_at || undefined,
+      updatedAt: row.updated_at || undefined,
     };
+    const parsedProps = JSON.parse(row.properties || "{}");
+    switch (row.type) {
+      case "clip":
+        return { type: "clip", properties: parsedProps, ...commonFields };
+      case "action":
+        return { type: "action", properties: parsedProps, ...commonFields };
+      case "file_path":
+        return { type: "file_path", properties: parsedProps, ...commonFields };
+      default:
+        // 나머지 타입은 기본적으로 clip으로 처리하거나 오류를 던질 수 있음
+        return { type: "clip", properties: parsedProps, ...commonFields };
+    }
   }
 }

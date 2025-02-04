@@ -1,14 +1,36 @@
-/**
- * Block 인터페이스: 모든 block은 동일한 데이터 모델을 사용합니다.
- */
-export interface Block {
+import { ActionBlockProps, ClipBlockProps, FileBlockProps } from "./blockProps";
+
+/** 블록의 공통 필드. */
+export interface BaseBlock<T = Record<string, unknown>> {
   id: string;
-  type: string; // 사용자 정의 block type (예: clip, action, file_path, 커스텀 타입 등)
-  properties: Record<string, unknown>;
-  content: string[]; // 자식 block id 배열
+  content: string[];
   parent?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  /** reserved block type: clip, action, file_path. 나머지는 사용자 정의 가능 */
+  type: string;
+  properties: T;
 }
 
-export type AnyBlock = Block;
+/** clip 블록 */
+export interface ClipBlock extends BaseBlock<ClipBlockProps> {
+  type: "clip";
+}
+
+/** action 블록 */
+export interface ActionBlock extends BaseBlock<ActionBlockProps> {
+  type: "action";
+}
+
+/** file_path 블록: 하나 이상의 파일 경로를 저장 */
+export interface FileBlock extends BaseBlock<FileBlockProps> {
+  type: "file_path";
+}
+
+/** 사용자 정의 블록: 예약된 "clip", "action", "file_path"는 제외 */
+export interface UserDefinedBlock extends BaseBlock {
+  type: Exclude<string, "clip" | "action" | "file_path">;
+}
+
+/** 모든 블록 타입 */
+export type AnyBlock = ClipBlock | ActionBlock | FileBlock | UserDefinedBlock;

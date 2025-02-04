@@ -1,10 +1,9 @@
+// client/electron/main/di.ts
 import { db, initDB } from "./db";
 import { BlockSqliteRepository } from "./repository/BlockSqliteRepository";
-import { BlockTypeSqliteRepository } from "./repository/BlockTypeSqliteRepository";
 
 export interface AppRepositories {
   blockRepository: BlockSqliteRepository;
-  blockTypeRepository: BlockTypeSqliteRepository;
 }
 
 let repositories: AppRepositories | null = null;
@@ -19,10 +18,8 @@ export function initAppRepositories(): AppRepositories {
   initDB();
 
   const blockRepository = new BlockSqliteRepository(db);
-  const blockTypeRepository = new BlockTypeSqliteRepository(db);
   repositories = {
     blockRepository,
-    blockTypeRepository,
   };
 
   return repositories;
