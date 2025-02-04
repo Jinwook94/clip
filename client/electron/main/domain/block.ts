@@ -1,32 +1,36 @@
-import { ActionBlockProps, ClipBlockProps } from "./blockProps";
+import { ActionBlockProps, ClipBlockProps, FileBlockProps } from "./blockProps";
 
-/** 블록의 공통 필드. properties 의 타입은 제네릭으로 지정 */
+/** 블록의 공통 필드. */
 export interface BaseBlock<T = Record<string, unknown>> {
   id: string;
   content: string[];
   parent?: string | null;
   createdAt?: string;
   updatedAt?: string;
-  /** reserved block type: clip, action. 나머지는 사용자 정의 가능 */
+  /** reserved block type: clip, action, file_path. 나머지는 사용자 정의 가능 */
   type: string;
-  /** 각 블록의 properties */
   properties: T;
 }
 
-/** reserved block: clip */
+/** clip 블록 */
 export interface ClipBlock extends BaseBlock<ClipBlockProps> {
   type: "clip";
 }
 
-/** reserved block: action */
+/** action 블록 */
 export interface ActionBlock extends BaseBlock<ActionBlockProps> {
   type: "action";
 }
 
-/** 사용자 정의 블록 */
+/** file_path 블록: 하나 이상의 파일 경로를 저장 */
+export interface FileBlock extends BaseBlock<FileBlockProps> {
+  type: "file_path";
+}
+
+/** 사용자 정의 블록: 예약된 "clip", "action", "file_path"는 제외 */
 export interface UserDefinedBlock extends BaseBlock {
-  type: Exclude<string, "clip" | "action">;
+  type: Exclude<string, "clip" | "action" | "file_path">;
 }
 
 /** 모든 블록 타입 */
-export type AnyBlock = ClipBlock | ActionBlock | UserDefinedBlock;
+export type AnyBlock = ClipBlock | ActionBlock | FileBlock | UserDefinedBlock;

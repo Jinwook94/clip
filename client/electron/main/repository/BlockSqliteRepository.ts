@@ -52,15 +52,10 @@ export class BlockSqliteRepository {
    */
   async create(block: Partial<AnyBlock>): Promise<string> {
     const now = new Date().toISOString();
-
-    // ID가 없으면 nanoid() 생성
     const newId = block.id ?? nanoid();
     const newType = block.type ?? "clip";
-
-    // DB에 JSON으로 저장할 때는 string으로 직렬화
     const propsJson = JSON.stringify(block.properties ?? {});
     const contentJson = JSON.stringify(block.content ?? []);
-
     this.db
       .prepare(
         `
@@ -77,7 +72,6 @@ export class BlockSqliteRepository {
         now,
         now,
       );
-
     return newId;
   }
 
@@ -87,10 +81,8 @@ export class BlockSqliteRepository {
    */
   async update(block: AnyBlock): Promise<void> {
     const now = new Date().toISOString();
-
     const propsJson = JSON.stringify(block.properties);
     const contentJson = JSON.stringify(block.content);
-
     this.db
       .prepare(
         `
@@ -135,10 +127,7 @@ export class BlockSqliteRepository {
    *  - type별로 properties를 적절히 분기하여 반환
    */
   private rowToBlock(raw: unknown): AnyBlock {
-    // 먼저 BlockDbRow 형태로 캐스팅
     const row = raw as BlockDbRow;
-
-    // 공통 필드
     const commonFields = {
       id: String(row.id),
       content: JSON.parse(row.content || "[]") as string[],
@@ -146,30 +135,17 @@ export class BlockSqliteRepository {
       createdAt: row.created_at || undefined,
       updatedAt: row.updated_at || undefined,
     };
-
-    // properties JSON parse
     const parsedProps = JSON.parse(row.properties || "{}");
-
-    // type별로 분기
     switch (row.type) {
       case "clip":
-        return {
-          type: "clip",
-          properties: parsedProps,
-          ...commonFields,
-        };
+        return { type: "clip", properties: parsedProps, ...commonFields };
       case "action":
-        return {
-          type: "action",
-          properties: parsedProps,
-          ...commonFields,
-        };
+        return { type: "action", properties: parsedProps, ...commonFields };
+      case "file_path":
+        return { type: "file_path", properties: parsedProps, ...commonFields };
       default:
-        return {
-          type: "clip",
-          properties: parsedProps,
-          ...commonFields,
-        };
+        // 나머지 타입은 기본적으로 clip으로 처리하거나 오류를 던질 수 있음
+        return { type: "clip", properties: parsedProps, ...commonFields };
     }
   }
 }

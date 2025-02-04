@@ -1,4 +1,5 @@
 import { ipcMain, IpcMainInvokeEvent, IpcMainEvent } from "electron";
+import { createRequire } from "node:module";
 import { getRepositories } from "../di";
 import type { AnyBlock, ClipBlock, ActionBlock } from "../domain/block";
 
@@ -67,9 +68,17 @@ export function initBlockIpc(): void {
     ) {
       try {
         const userCode = actionBlock.properties.code;
-        // clipBlock과 children 데이터를 인자로 전달하여 실행
-        const userFunc = new Function("clipBlock", "children", userCode);
-        userFunc(clipBlock, children);
+        // createRequire를 사용하여 require 함수를 생성
+        const requireFunc = createRequire(import.meta.url);
+        // 새 Function에 "clipBlock", "children", "require" 인자를 선언
+        const userFunc = new Function(
+          "clipBlock",
+          "children",
+          "require",
+          userCode,
+        );
+        // requireFunc를 전달하여 실행
+        userFunc(clipBlock, children, requireFunc);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : String(err);
         event.sender.send("clip-run-done", {
@@ -79,7 +88,6 @@ export function initBlockIpc(): void {
         return;
       }
     } else {
-      // 실행 코드가 정의되지 않은 경우 에러 메시지 전송
       event.sender.send("clip-run-done", {
         error: true,
         message: "No action code defined in this action block.",
