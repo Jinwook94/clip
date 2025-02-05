@@ -136,15 +136,6 @@ export default function BlockPropertyForm({
         </div>
       )}
 
-      {/* Name */}
-      <div>
-        <label className="block font-semibold mb-1">{t("NAME")}:</label>
-        <Input
-          value={(localProps.name as string) ?? ""}
-          onChange={(e) => updateProp("name", e.target.value)}
-        />
-      </div>
-
       {/* clip shortcut */}
       {localType === "clip" && (
         <div className="space-y-2">

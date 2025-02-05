@@ -29,9 +29,61 @@ interface BlockCreateModalProps {
 }
 
 /**
- * BlockCreateModal
- *  - clip 블록일 경우: 마스터-디테일(2열) 뷰
- *  - clip이 아니면: 기존 단일 폼 뷰
+ * InlineEditableTitle 컴포넌트
+ * - 텍스트(이름)를 표시하다가 클릭 시 입력폼으로 전환되어 인라인 편집을 가능하게 함.
+ * - 평소에는 일반 텍스트처럼 보이며, 포커스 시에만 편집 상태가 됨.
+ */
+function InlineEditableTitle({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (newValue: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(value);
+
+  useEffect(() => {
+    setText(value);
+  }, [value]);
+
+  const handleBlur = () => {
+    setEditing(false);
+    onChange(text);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      setEditing(false);
+      onChange(text);
+    }
+  };
+
+  return editing ? (
+    <input
+      type="text"
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+      className="text-lg font-semibold border-b border-transparent focus:border-gray-400 outline-none"
+      autoFocus
+    />
+  ) : (
+    <span
+      onClick={() => setEditing(true)}
+      className="text-lg font-semibold cursor-text"
+    >
+      {text || "Unnamed Block"}
+    </span>
+  );
+}
+
+/**
+ * BlockCreateModal 컴포넌트
+ * - clip 블록일 경우: 마스터-디테일(2열) 뷰
+ * - clip이 아니면: 기존 단일 폼 뷰
  */
 export default function BlockCreateModal({
   open,
@@ -122,11 +174,8 @@ export default function BlockCreateModal({
 
   /** ============ Case1: clip 블록 => 2열(마스터-디테일) 뷰 ============ */
   if (isClip) {
-    // 특정 예시: action 블록을 먼저 띄우고, 나머지 블록 그다음
     const actionBlockItem = connectedBlocks.find((b) => b.type === "action");
     const otherBlocks = connectedBlocks.filter((b) => b.type !== "action");
-
-    // 예: requiredTypes 등 처리
     const requiredTypes: string[] = [];
     const missingBlocks: ExtendedBlockItem[] = requiredTypes.map((rt) => ({
       id: `empty-${rt}`,
@@ -136,7 +185,6 @@ export default function BlockCreateModal({
       content: [],
       parent: null,
     }));
-
     const finalConnectedBlocks = [
       ...(actionBlockItem ? [actionBlockItem] : []),
       ...otherBlocks,
@@ -177,7 +225,7 @@ export default function BlockCreateModal({
 
     return (
       <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-        {/* 폭, 높이 고정 */}
+        {/* 폭, 높이 고정: width 700px, height 600px */}
         <DialogContent
           className="w-[700px] max-w-none h-[600px]"
           aria-describedby={undefined}
@@ -185,26 +233,34 @@ export default function BlockCreateModal({
         >
           <DialogHeader>
             <DialogTitle>
-              {editingBlock ? t("EDIT_BLOCK") : t("CREATE_NEW_BLOCK")}
+              <InlineEditableTitle
+                value={(formData.properties.name as string) || ""}
+                onChange={(newName) =>
+                  setFormData({
+                    ...formData,
+                    properties: { ...formData.properties, name: newName },
+                  })
+                }
+              />
             </DialogTitle>
           </DialogHeader>
 
           {/**
            * 2열 레이아웃.
-           *  - 높이에서 상단 100px 정도 Title 등 뺀 후, 남은 공간 500px
+           * 높이: 상단 영역을 제외한 500px 영역 사용
            */}
           <div className="flex gap-4 h-[500px]">
             {/* 왼쪽: 부모(clip) + 연결된 블록 목록 */}
             <div className="w-1/3 border-r pr-2 flex flex-col">
-              {/* (A) Clip(부모) Form */}
+              {/* (A) Clip(부모) Form (Name은 DialogTitle에서 처리되므로 여기서는 제외) */}
               <div className="mb-4">
                 <BlockPropertyForm
                   blockType={formData.type}
                   properties={formData.properties}
-                  onChange={(newType, newProps) => {
-                    setFormData({ type: newType, properties: newProps });
-                  }}
-                  disableTypeSelection={true} // type 변경 X
+                  onChange={(newType, newProps) =>
+                    setFormData({ type: newType, properties: newProps })
+                  }
+                  disableTypeSelection={true}
                 />
               </div>
 
@@ -231,9 +287,7 @@ export default function BlockCreateModal({
                     const isEmptyBlock = !!extChild.isEmpty;
                     const displayName =
                       (child.properties.name as string) || child.type;
-
                     return (
-                      // group 클래스로 감싸 hover 시 아이콘X 표시
                       <div
                         key={child.id}
                         onClick={() => {
@@ -262,14 +316,12 @@ export default function BlockCreateModal({
                               : displayName}
                           </div>
                         </div>
-
                         {!isEmptyBlock && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               disconnectBlock(child.id);
                             }}
-                            // hover 시에만 아이콘 표시
                             className="invisible group-hover:visible"
                           >
                             <IconX className="w-3 h-3 text-gray-400 hover:text-red-500" />
@@ -278,7 +330,6 @@ export default function BlockCreateModal({
                       </div>
                     );
                   })}
-
                   {finalConnectedBlocks.length === 0 && (
                     <div className="text-sm text-gray-400">
                       No connected blocks.
@@ -326,16 +377,24 @@ export default function BlockCreateModal({
       <DialogContent className="max-w-[400px]" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>
-            {editingBlock ? t("EDIT_BLOCK") : t("CREATE_NEW_BLOCK")}
+            <InlineEditableTitle
+              value={(formData.properties.name as string) || ""}
+              onChange={(newName) =>
+                setFormData({
+                  ...formData,
+                  properties: { ...formData.properties, name: newName },
+                })
+              }
+            />
           </DialogTitle>
         </DialogHeader>
 
         <BlockPropertyForm
           blockType={formData.type}
           properties={formData.properties}
-          onChange={(newType, newProps) => {
-            setFormData({ type: newType, properties: newProps });
-          }}
+          onChange={(newType, newProps) =>
+            setFormData({ type: newType, properties: newProps })
+          }
           disableTypeSelection={editingBlock?.type === "clip"}
         />
 
@@ -357,7 +416,7 @@ export default function BlockCreateModal({
 }
 
 /**
- * 자식 블록 편집 서브컴포넌트
+ * 자식 블록 편집 서브컴포넌트 (clip일 때만 사용)
  * - BlockType은 표시하되 수정은 불가능(읽기 전용)
  */
 function DetailChildEditor({
@@ -386,20 +445,16 @@ function DetailChildEditor({
       <div className="mb-2 text-sm">
         <span className="text-gray-700">{blockType} block</span>
       </div>
-
-      {/* 속성 편집 (block type 고정, disableTypeSelection */}
       <div className="flex-1 overflow-auto p-2 border rounded">
         <BlockPropertyForm
           blockType={blockType}
           properties={localProps}
-          // blockType은 읽기전용 => disableTypeSelection
           disableTypeSelection={true}
           onChange={(_newType, newProps) => {
             setLocalProps(newProps);
           }}
         />
       </div>
-
       <div className="mt-2 flex justify-end gap-2">
         <Button variant="secondary" onClick={handleSave}>
           {t("UPDATE")}
