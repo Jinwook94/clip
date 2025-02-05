@@ -11,13 +11,15 @@ import {
 import BlockPropertyForm, { BlockFormData } from "./BlockPropertyForm";
 import type { BlockItem } from "@/store/blockStore";
 import { useTranslation } from "react-i18next";
-import { IconFile, IconTerminal2, IconX } from "@tabler/icons-react";
+import { IconFile, IconTerminal2, IconX, IconPlus } from "@tabler/icons-react";
 
+/** 확장 인터페이스 (UI 표현용) */
 interface ExtendedBlockItem extends BlockItem {
   isEmpty?: boolean;
   removing?: boolean;
 }
 
+/** 모달 Props */
 interface BlockCreateModalProps {
   open: boolean;
   onClose: () => void;
@@ -26,6 +28,11 @@ interface BlockCreateModalProps {
   defaultType?: string;
 }
 
+/**
+ * BlockCreateModal
+ *  - clip 블록일 경우: 마스터-디테일(2열) 뷰
+ *  - clip이 아니면: 기존 단일 폼 뷰
+ */
 export default function BlockCreateModal({
   open,
   onClose,
@@ -38,20 +45,24 @@ export default function BlockCreateModal({
   const updateBlock = useBlockStore((s) => s.updateBlock);
   const { blocks } = useBlockStore();
 
-  // 편집 모드에서 사용하기 위해 editingBlock의 복사본을 로컬 state로 관리
+  // 현재(부모) 블록 (주로 clip)
   const [localEditingBlock, setLocalEditingBlock] = useState<BlockItem | null>(
     editingBlock || null,
   );
-  useEffect(() => {
-    setLocalEditingBlock(editingBlock || null);
-  }, [editingBlock]);
 
-  // 폼 데이터 state (블록 타입과 속성)
+  // 폼 데이터 (부모 블록)
   const [formData, setFormData] = useState<BlockFormData>({
-    type: "clip",
+    type: defaultType,
     properties: {},
   });
+
+  // 선택된 자식 블록 (clip 모드일 때만 사용)
+  const [selectedChildBlock, setSelectedChildBlock] =
+    useState<BlockItem | null>(null);
+
+  // 모달 열릴 때 초기 세팅
   useEffect(() => {
+    setLocalEditingBlock(editingBlock || null);
     if (editingBlock) {
       setFormData({
         type: editingBlock.type,
@@ -59,58 +70,18 @@ export default function BlockCreateModal({
       });
     } else {
       setFormData({
-        type: defaultType || "clip",
+        type: defaultType,
         properties: {},
       });
     }
+    // 자식 블록 선택 해제
+    setSelectedChildBlock(null);
   }, [editingBlock, defaultType]);
 
-  // 편집 모달에서 clip 블록은 수정 불가능하므로 블록 타입 선택 영역을 숨깁니다.
-  const disableTypeSelection = editingBlock?.type === "clip";
+  // clip인지 여부 (부모 블록 타입)
+  const isClip = editingBlock?.type === "clip" || formData.type === "clip";
 
-  // localEditingBlock의 content에 포함된 블록들을 connectedBlocks로 계산
-  const connectedBlocks = localEditingBlock
-    ? blocks.filter((b) => localEditingBlock.content.includes(b.id))
-    : [];
-
-  // 연결된 블록 중 type이 "action"인 블록 (상단에 표시)
-  const actionBlockItem = connectedBlocks.find((b) => b.type === "action");
-  // 그 외의 연결된 블록들은 action 블록을 제외한 나머지
-  const otherBlocks = connectedBlocks.filter((b) => b.type !== "action");
-
-  // "clip" 블록인 경우, required block 타입들을 계산 – 이제 더 이상 추가 타입은 사용하지 않음
-  const requiredTypes: string[] = [];
-  // 누락된(아직 연결되지 않은) required 블록들을 empty slot으로 표시
-  const missingBlocks: ExtendedBlockItem[] = requiredTypes.map((rt) => ({
-    id: `empty-${rt}`,
-    type: rt,
-    isEmpty: true,
-    properties: {},
-    content: [],
-    parent: null,
-  }));
-
-  // 최종적으로 표시할 연결된 블록 목록: action 블록, 기타 연결된 블록, 누락된 빈 슬롯
-  const finalConnectedBlocks = useMemo(() => {
-    return [
-      ...(actionBlockItem ? [actionBlockItem as ExtendedBlockItem] : []),
-      ...otherBlocks.map((b) => b as ExtendedBlockItem),
-      ...missingBlocks,
-    ];
-  }, [actionBlockItem, otherBlocks, missingBlocks]);
-
-  // 로컬 연결 블록 state (애니메이션 효과 적용)
-  const [localConnectedBlocks, setLocalConnectedBlocks] =
-    useState<ExtendedBlockItem[]>(finalConnectedBlocks);
-  useEffect(() => {
-    const currentIds = localConnectedBlocks.map((b) => b.id).join(",");
-    const newIds = finalConnectedBlocks.map((b) => b.id).join(",");
-    if (currentIds !== newIds) {
-      setLocalConnectedBlocks(finalConnectedBlocks);
-    }
-  }, [finalConnectedBlocks, localConnectedBlocks]);
-
-  // 편집 모드일 때, 원래의 값과 현재 값의 차이를 비교하여 Update 버튼 활성화 여부 결정
+  // 변경 감지 (부모)
   const hasChanges = editingBlock
     ? editingBlock.type !== formData.type ||
       JSON.stringify(editingBlock.properties) !==
@@ -119,57 +90,240 @@ export default function BlockCreateModal({
         JSON.stringify(localEditingBlock?.content || editingBlock.content)
     : true;
 
-  // 폼 제출 시: 편집 모드이면 업데이트(연결된 블록 포함), 아니면 새 블록 생성
-  const handleSubmit = async () => {
-    if (editingBlock) {
-      await updateBlock(editingBlock.id, {
-        type: formData.type,
-        properties: formData.properties,
-        content: localEditingBlock?.content || editingBlock.content,
-      });
-    } else {
-      await createBlock({
-        type: formData.type,
-        properties: formData.properties,
-      });
+  // clip 모드에서 연결된 자식 블록 목록
+  const connectedBlocks = useMemo(() => {
+    if (isClip && localEditingBlock) {
+      return blocks.filter((b) => localEditingBlock.content.includes(b.id));
     }
-    onBlockCreated?.(formData.type);
+    return [];
+  }, [isClip, localEditingBlock, blocks]);
+
+  /** 최종 제출(부모 clip 저장/생성) */
+  const handleSubmit = async () => {
+    if (!localEditingBlock) {
+      // 새 clip 생성
+      const newId = await createBlock({
+        type: formData.type,
+        properties: formData.properties,
+      });
+      onBlockCreated?.(formData.type);
+      console.log("Created block =>", newId);
+    } else {
+      // 업데이트(clip 수정)
+      await updateBlock(localEditingBlock.id, {
+        type: formData.type,
+        properties: formData.properties,
+        content: localEditingBlock.content,
+      });
+      console.log("Updated block =>", localEditingBlock.id);
+    }
     onClose();
   };
 
-  const getBlockIcon = (type: string, blockColor?: string) => {
-    if (type === "action") {
-      return (
-        <IconTerminal2 className="w-4 h-4" style={{ color: blockColor }} />
-      );
-    }
-    // 다른 타입은 기본 아이콘 사용
-    return <IconFile className="w-4 h-4" />;
-  };
+  /** ============ Case1: clip 블록 => 2열(마스터-디테일) 뷰 ============ */
+  if (isClip) {
+    // 특정 예시: action 블록을 먼저 띄우고, 나머지 블록 그다음
+    const actionBlockItem = connectedBlocks.find((b) => b.type === "action");
+    const otherBlocks = connectedBlocks.filter((b) => b.type !== "action");
 
-  const disconnectBlock = (blockId: string, blockType: string) => {
-    if (blockType === "action") {
-      const confirmed = window.confirm(
-        "Action 블록은 매우 중요합니다. 정말 해제하시겠습니까?",
+    // 예: requiredTypes 등 처리
+    const requiredTypes: string[] = [];
+    const missingBlocks: ExtendedBlockItem[] = requiredTypes.map((rt) => ({
+      id: `empty-${rt}`,
+      type: rt,
+      isEmpty: true,
+      properties: {},
+      content: [],
+      parent: null,
+    }));
+
+    const finalConnectedBlocks = [
+      ...(actionBlockItem ? [actionBlockItem] : []),
+      ...otherBlocks,
+      ...missingBlocks,
+    ];
+
+    /** 자식 블록 해제 */
+    const disconnectBlock = (childId: string) => {
+      if (!localEditingBlock) return;
+      const newContent = localEditingBlock.content.filter(
+        (id) => id !== childId,
       );
-      if (!confirmed) return;
-    }
-    setLocalConnectedBlocks((prev) =>
-      prev.map((b) => (b.id === blockId ? { ...b, removing: true } : b)),
-    );
-    setTimeout(() => {
-      if (localEditingBlock) {
-        const newContent = localEditingBlock.content.filter(
-          (id) => id !== blockId,
-        );
-        setLocalEditingBlock({ ...localEditingBlock, content: newContent });
+      setLocalEditingBlock({ ...localEditingBlock, content: newContent });
+      if (selectedChildBlock?.id === childId) {
+        setSelectedChildBlock(null);
       }
-    }, 300);
-  };
+    };
 
+    /** 자식 블록 새로 만들기 (snippet 예시) */
+    const handleCreateChildBlock = async () => {
+      const newId = await createBlock({
+        type: "snippet",
+        properties: { name: "", text: "" },
+      });
+      if (!localEditingBlock) return;
+      const newContent = [...localEditingBlock.content, newId];
+      setLocalEditingBlock({ ...localEditingBlock, content: newContent });
+    };
+
+    /** 자식 블록 업데이트 */
+    const handleUpdateChildBlock = async (
+      blockId: string,
+      patch: Partial<BlockItem>,
+    ) => {
+      await updateBlock(blockId, patch);
+      console.log("Updated child block =>", blockId);
+    };
+
+    return (
+      <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+        {/* 폭, 높이 고정 */}
+        <DialogContent
+          className="w-[700px] max-w-none h-[600px]"
+          aria-describedby={undefined}
+          style={{ maxWidth: "unset" }}
+        >
+          <DialogHeader>
+            <DialogTitle>
+              {editingBlock ? t("EDIT_BLOCK") : t("CREATE_NEW_BLOCK")}
+            </DialogTitle>
+          </DialogHeader>
+
+          {/**
+           * 2열 레이아웃.
+           *  - 높이에서 상단 100px 정도 Title 등 뺀 후, 남은 공간 500px
+           */}
+          <div className="flex gap-4 h-[500px]">
+            {/* 왼쪽: 부모(clip) + 연결된 블록 목록 */}
+            <div className="w-1/3 border-r pr-2 flex flex-col">
+              {/* (A) Clip(부모) Form */}
+              <div className="mb-4">
+                <BlockPropertyForm
+                  blockType={formData.type}
+                  properties={formData.properties}
+                  onChange={(newType, newProps) => {
+                    setFormData({ type: newType, properties: newProps });
+                  }}
+                  disableTypeSelection={true} // type 변경 X
+                />
+              </div>
+
+              {/* (B) 자식 블록 목록 */}
+              <div className="flex-1 flex flex-col">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-sm">
+                    {t("CONNECTED_BLOCKS", "Connected Blocks")}
+                  </h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                    onClick={handleCreateChildBlock}
+                  >
+                    <IconPlus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="flex-1 overflow-auto space-y-1">
+                  {finalConnectedBlocks.map((child) => {
+                    const extChild = child as ExtendedBlockItem;
+                    const isSelected = selectedChildBlock?.id === child.id;
+                    const isEmptyBlock = !!extChild.isEmpty;
+                    const displayName =
+                      (child.properties.name as string) || child.type;
+
+                    return (
+                      // group 클래스로 감싸 hover 시 아이콘X 표시
+                      <div
+                        key={child.id}
+                        onClick={() => {
+                          if (!isEmptyBlock) {
+                            setSelectedChildBlock(child);
+                          }
+                        }}
+                        className={
+                          "group relative flex items-center justify-between border p-2 rounded cursor-pointer transition-colors " +
+                          (isEmptyBlock
+                            ? "bg-gray-50 border-dashed"
+                            : isSelected
+                              ? "bg-blue-50 border-blue-400"
+                              : "bg-white hover:bg-gray-50")
+                        }
+                      >
+                        <div className="flex items-center gap-2">
+                          {child.type === "action" ? (
+                            <IconTerminal2 className="w-4 h-4" />
+                          ) : (
+                            <IconFile className="w-4 h-4" />
+                          )}
+                          <div className="text-sm font-medium">
+                            {isEmptyBlock
+                              ? t("EMPTY_SLOT", `Empty ${child.type}`)
+                              : displayName}
+                          </div>
+                        </div>
+
+                        {!isEmptyBlock && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              disconnectBlock(child.id);
+                            }}
+                            // hover 시에만 아이콘 표시
+                            className="invisible group-hover:visible"
+                          >
+                            <IconX className="w-3 h-3 text-gray-400 hover:text-red-500" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {finalConnectedBlocks.length === 0 && (
+                    <div className="text-sm text-gray-400">
+                      No connected blocks.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 오른쪽: 선택된 자식 블록 디테일 편집 */}
+            <div className="flex-1 overflow-hidden">
+              {selectedChildBlock ? (
+                <DetailChildEditor
+                  childBlock={selectedChildBlock}
+                  onUpdateChild={handleUpdateChildBlock}
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-400 text-sm">
+                  Select a connected block to edit.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="mt-4">
+            <Button variant="ghost" onClick={onClose}>
+              {t("CANCEL")}
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleSubmit}
+              disabled={editingBlock ? !hasChanges : false}
+            >
+              {editingBlock ? t("UPDATE") : t("CREATE")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  /** ============ Case2: clip이 아닐 때 => 기존 단일 폼 모달 ============ */
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent aria-describedby={undefined} className="max-w-[400px]">
+      <DialogContent className="max-w-[400px]" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>
             {editingBlock ? t("EDIT_BLOCK") : t("CREATE_NEW_BLOCK")}
@@ -182,59 +336,8 @@ export default function BlockCreateModal({
           onChange={(newType, newProps) => {
             setFormData({ type: newType, properties: newProps });
           }}
-          disableTypeSelection={disableTypeSelection}
+          disableTypeSelection={editingBlock?.type === "clip"}
         />
-
-        {formData.type === "clip" && localEditingBlock && (
-          <div className="mt-4">
-            <h3 className="font-semibold mb-2">
-              {t("CONNECTED_BLOCKS", "Connected Blocks")}
-            </h3>
-            <div className="space-y-2">
-              {localConnectedBlocks.map((block) => (
-                <div
-                  key={block.id}
-                  className={`flex items-center justify-between p-2 border rounded transition-all duration-300 ${
-                    block.removing
-                      ? "opacity-0 h-0 overflow-hidden"
-                      : block.isEmpty
-                        ? "bg-transparent border-dashed border-gray-300"
-                        : block.type === "action"
-                          ? "bg-yellow-50 border-yellow-400"
-                          : "bg-gray-50"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    {getBlockIcon(
-                      block.type,
-                      block.type === "action"
-                        ? (block.properties as { color?: string }).color
-                        : undefined,
-                    )}
-                    <div className="flex flex-col">
-                      <div className="text-xs text-gray-500">{block.type}</div>
-                      <div className="text-sm font-bold">
-                        {block.isEmpty
-                          ? t("EMPTY_SLOT", `Empty ${block.type}`)
-                          : ((block.properties as { name?: string }).name ??
-                            block.type)}
-                      </div>
-                    </div>
-                  </div>
-                  {!block.isEmpty && (
-                    <button
-                      onClick={() => disconnectBlock(block.id, block.type)}
-                      title={t("DISCONNECT", "Disconnect")}
-                      className="p-1"
-                    >
-                      <IconX className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         <DialogFooter className="mt-4">
           <Button variant="ghost" onClick={onClose}>
@@ -250,5 +353,58 @@ export default function BlockCreateModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * 자식 블록 편집 서브컴포넌트
+ * - BlockType은 표시하되 수정은 불가능(읽기 전용)
+ */
+function DetailChildEditor({
+  childBlock,
+  onUpdateChild,
+}: {
+  childBlock: BlockItem;
+  onUpdateChild: (blockId: string, patch: Partial<BlockItem>) => void;
+}) {
+  const { t } = useTranslation();
+  const [localProps, setLocalProps] = useState({ ...childBlock.properties });
+  const blockType = childBlock.type; // 표시만 할 값
+
+  const handleSave = async () => {
+    await onUpdateChild(childBlock.id, {
+      properties: localProps,
+    });
+  };
+
+  useEffect(() => {
+    setLocalProps({ ...childBlock.properties });
+  }, [childBlock]);
+
+  return (
+    <div className="w-full h-full flex flex-col">
+      <div className="mb-2 text-sm">
+        <span className="text-gray-700">{blockType} block</span>
+      </div>
+
+      {/* 속성 편집 (block type 고정, disableTypeSelection */}
+      <div className="flex-1 overflow-auto p-2 border rounded">
+        <BlockPropertyForm
+          blockType={blockType}
+          properties={localProps}
+          // blockType은 읽기전용 => disableTypeSelection
+          disableTypeSelection={true}
+          onChange={(_newType, newProps) => {
+            setLocalProps(newProps);
+          }}
+        />
+      </div>
+
+      <div className="mt-2 flex justify-end gap-2">
+        <Button variant="secondary" onClick={handleSave}>
+          {t("UPDATE")}
+        </Button>
+      </div>
+    </div>
   );
 }
