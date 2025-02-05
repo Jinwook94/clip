@@ -131,6 +131,7 @@ export default function BlockPropertyForm({
             <option value="clip">clip</option>
             <option value="action">action</option>
             <option value="file_path">file path</option>
+            <option value="snippet">snippet</option>
           </select>
         </div>
       )}
@@ -352,6 +353,21 @@ export default function BlockPropertyForm({
               }}
             />
           )}
+        </div>
+      )}
+
+      {/* snippet: 텍스트 스니펫 입력 */}
+      {localType === "snippet" && (
+        <div>
+          <label className="block font-semibold mb-1">
+            {t("SNIPPET_TEXT") || "Snippet Text"}:
+          </label>
+          <textarea
+            value={(localProps.text as string) || ""}
+            onChange={(e) => updateProp("text", e.target.value)}
+            className="border p-1 w-full"
+            rows={5}
+          />
         </div>
       )}
     </div>

@@ -16,3 +16,7 @@ export interface FileBlockProps {
   paths: string[]; // 선택한 파일 경로 배열 (rootPath 하위 파일들)
   name?: string; // 블록 이름 (옵션)
 }
+
+export interface SnippetBlockProps {
+  text?: string;
+}

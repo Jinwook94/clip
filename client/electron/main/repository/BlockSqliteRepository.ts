@@ -143,6 +143,8 @@ export class BlockSqliteRepository {
         return { type: "action", properties: parsedProps, ...commonFields };
       case "file_path":
         return { type: "file_path", properties: parsedProps, ...commonFields };
+      case "snippet":
+        return { type: "snippet", properties: parsedProps, ...commonFields };
       default:
         // 나머지 타입은 기본적으로 clip으로 처리하거나 오류를 던질 수 있음
         return { type: "clip", properties: parsedProps, ...commonFields };

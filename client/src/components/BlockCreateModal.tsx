@@ -1,5 +1,3 @@
-// client/src/components/BlockCreateModal.tsx
-
 import React, { useState, useEffect, useMemo } from "react";
 import { useBlockStore } from "@/store/blockStore";
 import { Button } from "@/components/ui/button";
@@ -29,12 +27,12 @@ interface BlockCreateModalProps {
 }
 
 export default function BlockCreateModal({
-                                           open,
-                                           onClose,
-                                           editingBlock,
-                                           onBlockCreated,
-                                           defaultType = "clip",
-                                         }: BlockCreateModalProps) {
+  open,
+  onClose,
+  editingBlock,
+  onBlockCreated,
+  defaultType = "clip",
+}: BlockCreateModalProps) {
   const { t } = useTranslation();
   const createBlock = useBlockStore((s) => s.createBlock);
   const updateBlock = useBlockStore((s) => s.updateBlock);
@@ -115,10 +113,10 @@ export default function BlockCreateModal({
   // 편집 모드일 때, 원래의 값과 현재 값의 차이를 비교하여 Update 버튼 활성화 여부 결정
   const hasChanges = editingBlock
     ? editingBlock.type !== formData.type ||
-    JSON.stringify(editingBlock.properties) !==
-    JSON.stringify(formData.properties) ||
-    JSON.stringify(editingBlock.content) !==
-    JSON.stringify(localEditingBlock?.content || editingBlock.content)
+      JSON.stringify(editingBlock.properties) !==
+        JSON.stringify(formData.properties) ||
+      JSON.stringify(editingBlock.content) !==
+        JSON.stringify(localEditingBlock?.content || editingBlock.content)
     : true;
 
   // 폼 제출 시: 편집 모드이면 업데이트(연결된 블록 포함), 아니면 새 블록 생성
